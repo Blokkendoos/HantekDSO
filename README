@@ -37,11 +37,11 @@ into the oscilloscope when it is connected.
 Locate one of the following files, depending on the model of 
 your scope: DSO20901.SYS, DSO21001.SYS, DSO21501.SYS, DSO22501.SYS, 
 DSO520A1.SYS and put it in the folder with dsoextractfw utility.
-Run the program dsoextractfw. It searches for the files listed above
-in the current directory. If it finds any of them, it creates 
-two files named "DSOxxxx_firmware.hex" and "DSOxxxx_loader.hex". Move 
-these files to /usr/share/HantekDSO/ . Copy the file HantekDSO.rules to 
-/etc/udev/rules.d/ .
+All characters in the file name MUST be uppercase. Please, rename the file
+to uppercase letters if need. Run the program dsoextractfw. It searches
+for the files listed above in the current directory. If it finds any of
+them, it creates two files named "DSOxxxx_firmware.hex" and "DSOxxxx_loader.hex". Move these files to /usr/share/HantekDSO/ .
+Copy the file HantekDSO.rules to /etc/udev/rules.d/ .
 
 Now, the firmware should be loaded automatically when the DSO is connected 
 to an USB port. Once the firmware is loaded, the LED on the DSO starts to 

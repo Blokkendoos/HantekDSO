@@ -23,7 +23,7 @@
 #include <string.h>
 
 HantekDSOIO::HantekDSOIO() : deviceModel(0), usbDSOHandle(0), interfaceNumber(0),
-    interfaceIsClaimed(false), timeout(300)
+    interfaceIsClaimed(false), epOutMaxPacketLen(0), epInMaxPacketLen(0), timeout(300), attempts(3)
 {
 }
 
@@ -123,6 +123,25 @@ int HantekDSOIO::dsoInit()
 
             interfaceNumber = usbInterfaceDescr->bInterfaceNumber;
             interfaceIsClaimed = true;
+
+            for (int i = 0; i < usbInterfaceDescr->bNumEndpoints; i++)
+            {
+                usb_endpoint_descriptor *usbEndpointDescr = &usbInterfaceDescr->endpoint[i];
+                switch (usbEndpointDescr->bEndpointAddress)
+                {
+                    case 0x02:  // EP OUT
+                        epOutMaxPacketLen = usbEndpointDescr->wMaxPacketSize;
+                        qDebug("EP OUT MaxPacketLen = %i", epOutMaxPacketLen);
+                        break;
+                    case 0x86:  // EP IN
+                        epInMaxPacketLen = usbEndpointDescr->wMaxPacketSize;
+                        qDebug("EP IN MaxPacketLen = %i", epInMaxPacketLen);
+                        break;
+                    default:
+                        qDebug("Unknown endpoint #%02X", usbEndpointDescr->bEndpointAddress);
+                }
+            }
+
             break;
         }
     }
@@ -141,22 +160,35 @@ int HantekDSOIO::dsoInit()
 /*!
     \fn HantekDSOIO::getDSOModel()
  */
+bool HantekDSOIO::dsoIsFound()
+{
+    return interfaceIsClaimed;
+}
+
+
+/*!
+    \fn HantekDSOIO::getDSOModel()
+ */
 unsigned short HantekDSOIO::dsoGetModel()
 {
     return deviceModel;
 }
-
 
 /*!
     \fn HantekDSOIO::writeBulk(void *buffer, int len)
  */
 int HantekDSOIO::writeBulk(void *buffer, int len)
 {
-    int rv = usb_bulk_write(usbDSOHandle, EP_BULK_OUT | USB_ENDPOINT_OUT, (char*)buffer, len, timeout);
+    int i, rv = -ETIMEDOUT;
+    for(i = 0; (rv == -ETIMEDOUT) && (i < attempts); i++)
+    {
+        rv = ::usb_bulk_write(usbDSOHandle, EP_BULK_OUT | USB_ENDPOINT_OUT, (char*)buffer, len, timeout);
+    }
+
     if (rv < 0)
     {
         qDebug("Usb write bulk returns error %i", rv);
-        qDebug("Error: %s", strerror (errno));
+        qDebug("Error: %s", ::usb_strerror());
         return rv;
     }
 
@@ -168,11 +200,16 @@ int HantekDSOIO::writeBulk(void *buffer, int len)
  */
 int HantekDSOIO::readBulk(void *buffer, int len)
 {
-    int rv = usb_bulk_read(usbDSOHandle, EP_BULK_IN | USB_ENDPOINT_IN, (char*)buffer, len, timeout);
+    int i, rv = -ETIMEDOUT;
+    for(i = 0; (rv == -ETIMEDOUT) && (i < attempts); i++)
+    {
+        rv = ::usb_bulk_read(usbDSOHandle, EP_BULK_IN | USB_ENDPOINT_IN, (char*)buffer, len, timeout);
+    }
+
     if (rv < 0)
     {
         qDebug("Usb read bulk returns error %i", rv);
-        qDebug("Error: %s", strerror (errno));
+        qDebug("Error: %s", ::usb_strerror());
         return rv;
     }
 
@@ -184,12 +221,17 @@ int HantekDSOIO::readBulk(void *buffer, int len)
  */
 int HantekDSOIO::writeControl(unsigned char request, void *buffer, int len, int value, int index)
 {
-    int rv = usb_control_msg(usbDSOHandle, USB_ENDPOINT_OUT | USB_TYPE_VENDOR,
+    int i, rv = -ETIMEDOUT;
+    for(i = 0; (rv == -ETIMEDOUT) && (i < attempts); i++)
+    {
+        rv = ::usb_control_msg(usbDSOHandle, USB_ENDPOINT_OUT | USB_TYPE_VENDOR,
                     request, value, index, (char*)buffer, len, timeout);
+    }
+
     if (rv < 0)
     {
         qDebug("Usb write control message %02X returns error %i", request, rv);
-        qDebug("Error: %s", strerror (errno));
+        qDebug("Error: %s", ::usb_strerror());
         return rv;
     }
 
@@ -201,12 +243,17 @@ int HantekDSOIO::writeControl(unsigned char request, void *buffer, int len, int 
  */
 int HantekDSOIO::readControl(unsigned char request, void *buffer, int len, int value, int index)
 {
-    int rv = usb_control_msg(usbDSOHandle, USB_ENDPOINT_IN | USB_TYPE_VENDOR,
+    int i, rv = -ETIMEDOUT;
+    for(i = 0; (rv == -ETIMEDOUT) && (i < attempts); i++)
+    {
+        rv = ::usb_control_msg(usbDSOHandle, USB_ENDPOINT_IN | USB_TYPE_VENDOR,
                     request, value, index, (char*)buffer, len, timeout);
+    }
+
     if (rv < 0)
     {
         qDebug("Usb read control message %02X returns error %i", request, rv);
-        qDebug("Error: %s", strerror (errno));
+        qDebug("Error: %s", ::usb_strerror());
         return rv;
     }
 
@@ -225,7 +272,10 @@ int HantekDSOIO::dsoGetConnectionSpeed()
     unsigned char buffer[10];
     int rv = readControl(CONTROL_GETSPEED, buffer, sizeof(buffer));
     if (rv < 0)
+    {
+        qDebug("In function %s", __FUNCTION__);
         return rv;
+    }
 
     return (int)buffer[0];
 }
@@ -262,7 +312,10 @@ int HantekDSOIO::dsoBeginCommand(int index)
 
     int rv = writeControl(CONTROL_BEGINCOMMAND, buffer, sizeof(buffer));
     if (rv < 0)
+    {
+        qDebug("In function %s", __FUNCTION__);
         return rv;
+    }
 
     return 0;
 }
@@ -300,6 +353,7 @@ int HantekDSOIO::dsoSetFilter(int channel1, int channel2, int trigger)
     rv = writeBulk(command, sizeof(command));
     if (rv < 0)
     {
+        qDebug("In function %s", __FUNCTION__);
         dsoIOMutex.unlock();
         return rv;
     }
@@ -370,6 +424,7 @@ int HantekDSOIO::dsoSetTriggerAndSampleRate(int timeBase, int selectedChannel, i
     rv = writeBulk(command, sizeof(command));
     if (rv < 0)
     {
+        qDebug("In function %s", __FUNCTION__);
         dsoIOMutex.unlock();
         return rv;
     }
@@ -404,6 +459,7 @@ int HantekDSOIO::dsoForceTrigger()
     rv = writeBulk(command, sizeof(command));
     if (rv < 0)
     {
+        qDebug("In function %s", __FUNCTION__);
         dsoIOMutex.unlock();
         return rv;
     }
@@ -435,6 +491,7 @@ int HantekDSOIO::dsoCaptureStart()
     rv = writeBulk(command, sizeof(command));
     if (rv < 0)
     {
+        qDebug("In function %s", __FUNCTION__);
         dsoIOMutex.unlock();
         return rv;
     }
@@ -469,6 +526,7 @@ int HantekDSOIO::dsoTriggerEnabled()
     rv = writeBulk(command, sizeof(command));
     if (rv < 0)
     {
+        qDebug("In function %s", __FUNCTION__);
         dsoIOMutex.unlock();
         return rv;
     }
@@ -503,6 +561,7 @@ int HantekDSOIO::dsoGetChannelData(void *buffer, int bufferSize)
     rv = writeBulk(command, sizeof(command));
     if (rv < 0)
     {
+        qDebug("In function %s", __FUNCTION__);
         dsoIOMutex.unlock();
         return rv;
     }
@@ -514,14 +573,14 @@ int HantekDSOIO::dsoGetChannelData(void *buffer, int bufferSize)
         return rv;
     }
 
-    int packetLen = rv?512:64;
-    int packets = bufferSize*sizeof(unsigned short)/packetLen;
+    int packets = bufferSize*sizeof(unsigned short)/epInMaxPacketLen;
 
     for(int i=0; i<packets; i++)
     {
-        rv = readBulk((unsigned char*)buffer + i*packetLen, packetLen);
+        rv = readBulk((unsigned char*)buffer + i*epInMaxPacketLen, epInMaxPacketLen);
         if (rv < 0)
         {
+        qDebug("In function %s", __FUNCTION__);
             dsoIOMutex.unlock();
             return rv;
         }
@@ -613,6 +672,7 @@ int HantekDSOIO::dsoGetCaptureState(unsigned *triggerPoint)
     rv = writeBulk(command, sizeof(command));
     if (rv < 0)
     {
+        qDebug("In function %s", __FUNCTION__);
         dsoIOMutex.unlock();
         return rv;
     }
@@ -624,11 +684,12 @@ int HantekDSOIO::dsoGetCaptureState(unsigned *triggerPoint)
         return rv;
     }
 
-    unsigned char temp[4];
+    unsigned char temp[epInMaxPacketLen];
 
-    rv = readBulk(temp, sizeof(temp));
+    rv = readBulk(temp, epInMaxPacketLen);
     if (rv < 0)
     {
+        qDebug("In function %s", __FUNCTION__);
         dsoIOMutex.unlock();
         return rv;
     }
@@ -676,6 +737,7 @@ int HantekDSOIO::dsoSetVoltageAndCoupling(int ch1Voltage, int ch2Voltage, int ch
     rv = writeBulk(command, sizeof(command));
     if (rv < 0)
     {
+        qDebug("In function %s", __FUNCTION__);
         dsoIOMutex.unlock();
         return rv;
     }
@@ -711,6 +773,8 @@ int HantekDSOIO::dsoSetVoltageAndCoupling(int ch1Voltage, int ch2Voltage, int ch
     if (rv < 0)
     {
         dsoIOMutex.unlock();
+        qDebug("In function %s", __FUNCTION__);
+
         return rv;
     }
 
@@ -745,6 +809,7 @@ int HantekDSOIO::dsoSetLogicalData(int data)
     rv = writeBulk(command, sizeof(command));
     if (rv < 0)
     {
+        qDebug("In function %s", __FUNCTION__);
         dsoIOMutex.unlock();
         return rv;
     }
@@ -778,6 +843,7 @@ int HantekDSOIO::dsoGetLogicalData(void *buffer)
     rv = writeBulk(command, sizeof(command));
     if (rv < 0)
     {
+        qDebug("In function %s", __FUNCTION__);
         dsoIOMutex.unlock();
         return rv;
     }
@@ -789,16 +855,17 @@ int HantekDSOIO::dsoGetLogicalData(void *buffer)
         return rv;
     }
 
-    int len = rv?512:64;
-    rv = readBulk(buffer, len);
+    rv = readBulk(buffer, epInMaxPacketLen);
     if (rv < 0)
     {
+        qDebug("In function %s", __FUNCTION__);
         dsoIOMutex.unlock();
+
         return rv;
     }
 
     dsoIOMutex.unlock();
-    return len;
+    return epInMaxPacketLen;
 }
 
 /*!
@@ -813,6 +880,7 @@ int HantekDSOIO::dsoGetDeviceAddress(int *deviceAddress)
     if (rv < 0)
     {
         dsoIOMutex.unlock();
+        qDebug("In function %s", __FUNCTION__);
         return rv;
     }
 
@@ -831,6 +899,8 @@ int HantekDSOIO::dsoSetDeviceAddress(int *deviceAddress)
     if (rv < 0)
     {
         dsoIOMutex.unlock();
+        qDebug("In function %s", __FUNCTION__);
+
         return rv;
     }
 
@@ -850,6 +920,8 @@ int HantekDSOIO::dsoGetCalData(int *calData)
     if (rv < 0)
     {
         dsoIOMutex.unlock();
+        qDebug("In function %s", __FUNCTION__);
+
         return rv;
     }
 
@@ -869,6 +941,8 @@ int HantekDSOIO::dsoSetCalData(int *calData)
     if (rv < 0)
     {
         dsoIOMutex.unlock();
+        qDebug("In function %s", __FUNCTION__);
+
         return rv;
     }
 
@@ -883,10 +957,13 @@ int HantekDSOIO::dsoGetChannelLevel(channel_levels *channelLevels)
 {
     dsoIOMutex.lock();
 
-    int rv = readControl(CONTROL_COMMAND, (char*)channelLevels, sizeof(channel_levels), VALUE_CHANNELLEVEL);
+    int rv = readControl(CONTROL_COMMAND, (char*)channelLevels, sizeof(channel_levels),
+        VALUE_CHANNELLEVEL);
     if (rv < 0)
     {
         dsoIOMutex.unlock();
+        qDebug("In function %s", __FUNCTION__);
+
         return rv;
     }
 
@@ -901,10 +978,13 @@ int HantekDSOIO::dsoSetChannelLevel(channel_levels *channelLevels)
 {
     dsoIOMutex.lock();
 
-    int rv = writeControl(CONTROL_COMMAND, (char*)channelLevels, sizeof(channel_levels), VALUE_CHANNELLEVEL);
+    int rv = writeControl(CONTROL_COMMAND, (char*)channelLevels, sizeof(channel_levels),
+        VALUE_CHANNELLEVEL);
     if (rv < 0)
     {
         dsoIOMutex.unlock();
+        qDebug("In function %s", __FUNCTION__);
+
         return rv;
     }
 
@@ -934,6 +1014,8 @@ int HantekDSOIO::dsoSetOffset(int ch1Offset, int ch2Offset, int extOffset)
     if (rv < 0)
     {
         dsoIOMutex.unlock();
+        qDebug("In function %s", __FUNCTION__);
+
         return rv;
     }
 

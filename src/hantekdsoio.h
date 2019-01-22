@@ -138,8 +138,9 @@ enum buffer_sizes
 enum getcapturestate_return_values
 {
     CAPTURE_VALUE0 = 0,
-    CAPTURE_VALUE1,
-    CAPTURE_SUCCESS
+    CAPTURE_VALUE1 = 1,
+    CAPTURE_SUCCESS = 2,
+    CAPTURE_TIMEOUT = 127
 };
 
 enum level_offsets
@@ -214,6 +215,7 @@ public:
     ~HantekDSOIO();
 
     int dsoInit();
+    bool dsoIsFound();
     unsigned short dsoGetModel();
     int dsoSetFilter(int channel1, int channel2, int trigger);
     int dsoSetTriggerAndSampleRate(int timeBase, int selectedChannel, int triggerSource, int triggerSlope, int triggerPosition, int bufferSize);
@@ -250,8 +252,9 @@ private:
     struct usb_dev_handle *usbDSOHandle;
     int interfaceNumber;
     bool interfaceIsClaimed;
+    int epOutMaxPacketLen, epInMaxPacketLen;
     QMutex dsoIOMutex;
-    int timeout;
+    int timeout, attempts;
 };
 
 #endif

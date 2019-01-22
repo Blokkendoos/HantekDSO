@@ -32,13 +32,6 @@ enum channel_activity
     CHANNEL_ACTIVE
 };
 
-enum trigger_modes
-{
-    TRIGGERMODE_AUTO = 0,
-    TRIGGERMODE_NORMAL,
-    TRIGGERMODE_SINGLE
-};
-
 class HantekDSOWidget : public HantekDSOWidgetBase
 {
     Q_OBJECT
@@ -62,7 +55,7 @@ protected:
     int ch1Coupling, ch2Coupling;
     int ch1Offset, ch2Offset, triggerOffset;
     int ch1Filter, ch2Filter, triggerFilter;
-    int triggerSource, triggerSlope, triggerPosition, triggerMode;
+    int triggerSource, triggerSlope, triggerPosition;
     int calData;
     channel_levels chLevels;
 

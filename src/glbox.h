@@ -72,6 +72,7 @@ public:
 
 public:
     void setAThread(HantekDSOAThread* pAThread);
+    void setActiveChannels(bool ch1Active, bool ch2Active);
     void setViewMode(int mode);
     void setMathType(int type);
     void setChMOffset(int offset);
@@ -91,6 +92,7 @@ private:
     GLuint gl_grid, gl_channels;
     SansFont font;
     static const GLfloat chColor[MAX_CHANNELS+1][4];
+    bool chActive[MAX_CHANNELS];
     int digitalPhosphor;
     int dpIndex;
     int viewMode;

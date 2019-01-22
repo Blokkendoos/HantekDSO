@@ -38,6 +38,7 @@ GLBox::GLBox(QWidget* parent, const char* name) : QGLWidget(parent, name),
 GLBox::~GLBox()
 {
     makeCurrent();
+
     if (gl_channels)
     {
         glDeleteLists(gl_channels, DP_DEPTH*(MAX_CHANNELS+1));
@@ -52,13 +53,10 @@ GLBox::~GLBox()
 void GLBox::initializeGL()
 {
     glDisable(GL_DEPTH_TEST);
-
-    glEnable(GL_LINE_SMOOTH);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
-    glEnable(GL_POINT_SMOOTH);
+//    glEnable(GL_POINT_SMOOTH);
     glPointSize(1);
 
     qglClearColor(black);
@@ -101,19 +99,22 @@ void GLBox::paintGL()
                 aThread->bufferMutex.lock();
                 for (int t = 0 ; t < MAX_CHANNELS; t++)
                 {
-                    glNewList(gl_channels + dpIndex*MAX_CHANNELS + t, GL_COMPILE);
-                    glBegin((interpolationMode == INTERPOLATION_OFF)?GL_POINTS:GL_LINE_STRIP);
-                    unsigned p = aThread->triggerPoint + viewPos;
-                    for (unsigned i = 0; i < viewLen; i++)
+                    if (chActive[t])
                     {
-                        if (p >= samplesInBuffer)
+                        glNewList(gl_channels + dpIndex*MAX_CHANNELS + t, GL_COMPILE);
+                        glBegin((interpolationMode == INTERPOLATION_OFF)?GL_POINTS:GL_LINE_STRIP);
+                        unsigned p = aThread->triggerPoint + viewPos;
+                        for (unsigned i = 0; i < viewLen; i++)
                         {
-                            p -= samplesInBuffer;
+                            if (p >= samplesInBuffer)
+                            {
+                                p -= samplesInBuffer;
+                            }
+                            glVertex2f(i, aThread->buffer[p++][t]);
                         }
-                        glVertex2f(i, aThread->buffer[p++][t]);
+                        glEnd();
+                        glEndList();
                     }
-                    glEnd();
-                    glEndList();
                 }
                 if (mathType != MATHTYPE_OFF)
                 {
@@ -147,25 +148,23 @@ void GLBox::paintGL()
                 aThread->bufferMutex.unlock();
 
                 glPushMatrix();
-                glCallList(gl_grid);
-/*
-                glPushMatrix();
-                glColor4f(0.0, 1.0, 0.0, 1.0);
-                glTranslatef(-DIVS_TIME/2, -DIVS_VOLTAGE/2, 0.0);
-                str=QString("%1").arg("400ms");
-                font.glString(str, 0.3);
-                glPopMatrix();
-*/
                 glTranslatef(-DIVS_TIME/2, -DIVS_VOLTAGE/2, 0);
                 glScalef(DIVS_TIME*timeDiv/samplesInScale, DIVS_VOLTAGE/VOLTAGE_SCALE, 1.0);
+
+                glEnable(GL_LINE_SMOOTH);
+                glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
                 for (int t = 0 ; t < MAX_CHANNELS; t++)
                 {
-                    for (int i = (digitalPhosphor?DP_DEPTH:0); i >= 0; i--)
+                    if (chActive[t])
                     {
-                        glColor4f(chColor[t][0], chColor[t][1], chColor[t][2],
-                            chColor[t][3] - 0.7*log(i + 1));
-                        int index = (dpIndex + i) % DP_DEPTH;
-                        glCallList(gl_channels + index*MAX_CHANNELS + t);
+                        for (int i = (digitalPhosphor?DP_DEPTH:0); i >= 0; i--)
+                        {
+                            glColor4f(chColor[t][0], chColor[t][1], chColor[t][2],
+                                chColor[t][3] - 0.7*log(i + 1));
+                            int index = (dpIndex + i) % DP_DEPTH;
+                            glCallList(gl_channels + index*MAX_CHANNELS + t);
+                        }
                     }
                 }
                 if (mathType != MATHTYPE_OFF)
@@ -186,10 +185,22 @@ void GLBox::paintGL()
                         dpIndex = 0;
                     }
                 }
+
                 glPopMatrix();
+/*
+                glPushMatrix();
+                glColor4f(0.0, 1.0, 0.0, 1.0);
+                glTranslatef(-DIVS_TIME/2, -DIVS_VOLTAGE/2, 0.0);
+                str=QString("%1").arg("400ms");
+                font.glString(str, 0.3);
+                glPopMatrix();
+*/
+                glDisable(GL_LINE_SMOOTH);
+                glCallList(gl_grid);    // Draw grid
                 break;
 
             case VIEWMODE_XY:
+                glDisable(GL_LINE_SMOOTH);
                 glCallList(gl_grid);
                 break;
 
@@ -212,7 +223,7 @@ void GLBox::paintGL()
 
                 glPushMatrix();
                 glTranslatef(-DIVS_TIME/2, -DIVS_VOLTAGE/2, 0);
-                glScalef(DIVS_TIME*timeDiv/transformedSamples, DIVS_VOLTAGE/VOLTAGE_SCALE, 1.0);
+                glScalef(DIVS_TIME*timeDiv/transformedSamples, DIVS_VOLTAGE, 1.0);
                 glLineWidth(1);
                 for (int t = 0; t < MAX_CHANNELS; t++)
                 {
@@ -229,14 +240,15 @@ void GLBox::paintGL()
                         glVertex2f(i, aThread->fhtBuffer[t][i+transformViewPos]);
                         if (interpolationMode != INTERPOLATION_OFF)
                         {
-                            glVertex2f(i+1, aThread->fhtBuffer[t][i+transformViewPos+1]);
+                            glVertex2f(i+1, aThread->fhtBuffer[t][i+transformViewPos]);
                             glVertex2f(i+1, 0);
                         }
                     }
                     glEnd();
                 }
                 glPopMatrix();
-                glCallList(gl_grid);
+                glDisable(GL_LINE_SMOOTH);
+                glCallList(gl_grid);    // Draw grid
                 break;
         }
     }
@@ -255,7 +267,12 @@ void GLBox::resizeGL(int w, int h)
 void GLBox::setAThread(HantekDSOAThread* pAThread)
 {
     aThread = pAThread;
-    updateGL();
+}
+
+void GLBox::setActiveChannels(bool ch1Active, bool ch2Active)
+{
+    chActive[0] = ch2Active;
+    chActive[1] = ch1Active;
 }
 
 void GLBox::setViewMode(int mode)
@@ -296,7 +313,7 @@ GLuint GLBox::makeObject(int object)
     switch (object)
     {
         case GLOBJ_GRID:
-            glColor4f(0.7, 0.7, 0.7, 0.7);
+            glColor4f(0.7, 0.7, 0.7, 0.5);  // Grid Color
             glEnable(GL_LINE_STIPPLE);
             glBegin(GL_LINES);
             for(GLfloat i=1; i<=DIVS_TIME/2; i++)
@@ -314,7 +331,7 @@ GLuint GLBox::makeObject(int object)
                 glVertex2f(DIVS_TIME/2, -i);
             }
             glEnd();
-            glColor4f(1.0, 1.0, 1.0, 0.8);
+            glColor4f(1.0, 1.0, 1.0, 0.5);  // Axis Color
             glDisable(GL_LINE_STIPPLE);
             glBegin(GL_LINES);
             glVertex2f(-DIVS_TIME/2, 0);

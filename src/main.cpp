@@ -39,8 +39,8 @@ static KCmdLineOptions options[] =
 int main(int argc, char **argv)
 {
     KAboutData about("hantekdso", I18N_NOOP("HantekDSO"), version, description,
-                     KAboutData::License_GPL, "(C) 2008 Oleg Khudyakov", 0, 0, "prcoder@potrebitel.ru");
-    about.addAuthor( "Oleg Khudyakov", 0, "prcoder@potrebitel.ru" );
+                     KAboutData::License_GPL, "(C) 2008-2009 Oleg Khudyakov", 0, 0, "prcoder@gmail.com");
+    about.addAuthor( "Oleg Khudyakov", 0, "prcoder@gmail.com" );
     KCmdLineArgs::init(argc, argv, &about);
     KCmdLineArgs::addCmdLineOptions( options );
     KApplication app;

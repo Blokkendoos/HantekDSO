@@ -28,6 +28,13 @@
 #define MAX_CHANNELS 2
 #define VOLTAGE_SCALE 256
 
+enum trigger_modes
+{
+    TRIGGER_MODE_AUTO = 0,
+    TRIGGER_MODE_NORMAL,
+    TRIGGER_MODE_SINGLE
+};
+
 /**
 Hantek DSO acquisition thread
 
@@ -39,11 +46,14 @@ public:
     HantekDSOAThread();
     ~HantekDSOAThread();
 
-    virtual void run();
-    virtual void setBufferSize(unsigned bufferSize);
-    virtual void getCalData();
-    virtual void calibrateBuffer();
-    virtual void transform();
+    void run();
+    void stop();
+    void setBufferSize(unsigned bufferSize);
+    void setTriggerMode(int triggerMode);
+    int getTriggerMode();
+    void setStopAcquisitionFlag(int stopAcquisitionFlag);
+    void getCalData();
+    void transform();
 
 public:
     HantekDSOIO dsoIO;
@@ -53,6 +63,9 @@ public:
     unsigned char buffer[BUFFER_LARGE][MAX_CHANNELS];
     int calData;
     unsigned triggerPoint;
+    int triggerMode;
+    bool stopAcquisitionFlag;
+    bool terminateFlag;
     double fhtBuffer[MAX_CHANNELS][BUFFER_LARGE];
     double windowCoeff[BUFFER_LARGE];
 };

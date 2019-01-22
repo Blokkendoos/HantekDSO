@@ -32,8 +32,7 @@ HantekDSOWidget::HantekDSOWidget(QWidget* parent, const char* name, WFlags fl)
           ch1Offset(0), ch2Offset(0), triggerOffset(0),
           ch1Filter(0), ch2Filter(0), triggerFilter(0),
           triggerSource(0), triggerSlope(SLOPE_POSITIVE),
-          triggerPosition(0x78A60), triggerMode(TRIGGERMODE_AUTO),
-          calData(0)
+          triggerPosition(0x78A60), calData(0)
 {
     gLBox1->setAThread(&dsoAThread);
     connect(&refreshTimer, SIGNAL(timeout()), this, SLOT(refreshView()));
@@ -43,7 +42,8 @@ HantekDSOWidget::HantekDSOWidget(QWidget* parent, const char* name, WFlags fl)
 HantekDSOWidget::~HantekDSOWidget()
 {
     refreshTimer.stop();
-    dsoAThread.terminate();
+    dsoAThread.stop();
+    dsoAThread.wait();
 }
 
 /*$SPECIALIZATION$*/
@@ -60,7 +60,7 @@ int HantekDSOWidget::startDSO()
 {
     if (dsoAThread.dsoIO.dsoInit() == 0)
     {
-        textInfo->setText(QString( "DSO model %1 found").arg(dsoAThread.dsoIO.dsoGetModel(), 0, 16));
+        textInfo->setText(QString("DSO model %1 found").arg(dsoAThread.dsoIO.dsoGetModel(), 0, 16));
 
         if (dsoAThread.dsoIO.dsoGetChannelLevel(&chLevels) < 0)
         {
@@ -99,6 +99,7 @@ int HantekDSOWidget::startDSO()
         sliderCh2_valueChanged(sliderCh2->value());
         sliderChM_valueChanged(sliderChM->value());
         sliderTrigger_valueChanged(sliderTrigger->value());
+        setActiveChannel();
         dsoAThread.start();
 
         refreshTimer.start(25, FALSE);
@@ -114,15 +115,38 @@ int HantekDSOWidget::startDSO()
 
 void HantekDSOWidget::buttonStart_clicked()
 {
-    qDebug("START");
-    if (dsoAThread.dsoIO.dsoForceTrigger() < 0)
+    if (dsoAThread.dsoIO.dsoIsFound())
     {
-        qDebug("Error running TriggerEnabled command");
+        int triggerMode = dsoAThread.getTriggerMode();
+
+        if (dsoAThread.dsoIO.dsoCaptureStart() < 0)
+        {
+            qDebug("Error running CaptureStart command");
+        }
+
+        if (dsoAThread.dsoIO.dsoTriggerEnabled() < 0)
+        {
+            qDebug("Error running TriggerEnabled command");
+        }
+
+        if (triggerMode == TRIGGER_MODE_AUTO)
+        {
+            if (dsoAThread.dsoIO.dsoForceTrigger() < 0)
+            {
+                qDebug("Error running ForceTrigger command");
+            }
+        }
+        if (triggerMode != TRIGGER_MODE_SINGLE)
+        {
+            dsoAThread.setStopAcquisitionFlag(false);
+        }
     }
+    qDebug("START");
 }
 
 void HantekDSOWidget::buttonStop_clicked()
 {
+    dsoAThread.setStopAcquisitionFlag(true);
     qDebug("STOP");
 }
 
@@ -150,7 +174,7 @@ void HantekDSOWidget::setActiveChannel()
         }
     }
 
-    if (selectedChannel != prevSelectedChannel)
+    if (selectedChannel != prevSelectedChannel && dsoAThread.dsoIO.dsoIsFound())
     {
         if (dsoAThread.dsoIO.dsoSetTriggerAndSampleRate(timeBase, selectedChannel,
             triggerSource, triggerSlope, triggerPosition, dsoAThread.bufferSize) < 0)
@@ -158,16 +182,21 @@ void HantekDSOWidget::setActiveChannel()
             qDebug("Error running SetTriggerAndSampleRate command");
         }
     }
+
+    gLBox1->setActiveChannels(ch1Active, ch2Active);
 }
 
 void HantekDSOWidget::comboVoltage1_activated(int voltage)
 {
     qDebug("Voltage1=%i", voltage);
     ch1Voltage = voltage;
-    if (dsoAThread.dsoIO.dsoSetVoltageAndCoupling(ch1Voltage, ch2Voltage,
-        ch1Coupling, ch2Coupling,  triggerSource) < 0)
+    if (dsoAThread.dsoIO.dsoIsFound())
     {
-        qDebug("Error running SetVoltageAndCoupling command");
+        if (dsoAThread.dsoIO.dsoSetVoltageAndCoupling(ch1Voltage, ch2Voltage,
+            ch1Coupling, ch2Coupling,  triggerSource) < 0)
+        {
+            qDebug("Error running SetVoltageAndCoupling command");
+        }
     }
     sliderCh1_valueChanged(sliderCh1->value());
 }
@@ -178,10 +207,13 @@ void HantekDSOWidget::comboCoupling1_activated(int coupling)
     {
         ch1Active = CHANNEL_ACTIVE;
         ch1Coupling = coupling;
-        if (dsoAThread.dsoIO.dsoSetVoltageAndCoupling(ch1Voltage, ch2Voltage,
-            ch1Coupling, ch2Coupling,  triggerSource) < 0)
+        if (dsoAThread.dsoIO.dsoIsFound())
         {
-            qDebug("Error running SetVoltageAndCoupling command");
+            if (dsoAThread.dsoIO.dsoSetVoltageAndCoupling(ch1Voltage, ch2Voltage,
+                ch1Coupling, ch2Coupling,  triggerSource) < 0)
+            {
+                qDebug("Error running SetVoltageAndCoupling command");
+            }
         }
     }
     else
@@ -196,10 +228,13 @@ void HantekDSOWidget::comboVoltage2_activated(int voltage)
 {
     qDebug("Voltage1=%i", voltage);
     ch2Voltage = voltage;
-    if (dsoAThread.dsoIO.dsoSetVoltageAndCoupling(ch1Voltage, ch2Voltage,
-        ch1Coupling, ch2Coupling,  triggerSource) < 0)
+    if (dsoAThread.dsoIO.dsoIsFound())
     {
-        qDebug("Error running SetVoltageAndCoupling command");
+        if (dsoAThread.dsoIO.dsoSetVoltageAndCoupling(ch1Voltage, ch2Voltage,
+            ch1Coupling, ch2Coupling,  triggerSource) < 0)
+        {
+            qDebug("Error running SetVoltageAndCoupling command");
+        }
     }
     sliderCh2_valueChanged(sliderCh2->value());
 }
@@ -210,10 +245,13 @@ void HantekDSOWidget::comboCoupling2_activated(int coupling)
     {
         ch2Active = CHANNEL_ACTIVE;
         ch2Coupling = coupling;
-        if (dsoAThread.dsoIO.dsoSetVoltageAndCoupling(ch1Voltage, ch2Voltage,
-            ch1Coupling, ch2Coupling, triggerSource) < 0)
+        if (dsoAThread.dsoIO.dsoIsFound())
         {
-            qDebug("Error running SetVoltageAndCoupling command");
+            if (dsoAThread.dsoIO.dsoSetVoltageAndCoupling(ch1Voltage, ch2Voltage,
+                ch1Coupling, ch2Coupling, triggerSource) < 0)
+            {
+                qDebug("Error running SetVoltageAndCoupling command");
+            }
         }
     }
     else
@@ -228,10 +266,13 @@ void HantekDSOWidget::comboTimeBase_activated(int timeBase)
 {
     qDebug("TimeBase=%i", timeBase);
     this->timeBase = timeBase;
-    if (dsoAThread.dsoIO.dsoSetTriggerAndSampleRate(timeBase, selectedChannel,
-        triggerSource, triggerSlope, triggerPosition, dsoAThread.bufferSize) < 0)
+    if (dsoAThread.dsoIO.dsoIsFound())
     {
-        qDebug("Error running SetTriggerAndSampleRate command");
+        if (dsoAThread.dsoIO.dsoSetTriggerAndSampleRate(timeBase, selectedChannel,
+            triggerSource, triggerSlope, triggerPosition, dsoAThread.bufferSize) < 0)
+        {
+            qDebug("Error running SetTriggerAndSampleRate command");
+        }
     }
 }
 
@@ -248,9 +289,12 @@ void HantekDSOWidget::sliderCh1_valueChanged(int value)
     ch1Offset = (sliderEnd - value)*offsetRange/sliderRange + offsetStart;
     ch1Offset >>= 8;
 
-    if (dsoAThread.dsoIO.dsoSetOffset(ch1Offset, ch2Offset, triggerOffset) < 0)
+    if (dsoAThread.dsoIO.dsoIsFound())
     {
-        qDebug("Error running SetOffset command");
+        if (dsoAThread.dsoIO.dsoSetOffset(ch1Offset, ch2Offset, triggerOffset) < 0)
+        {
+            qDebug("Error running SetOffset command");
+        }
     }
 }
 
@@ -267,9 +311,12 @@ void HantekDSOWidget::sliderCh2_valueChanged(int value)
     ch2Offset = (sliderEnd - value)*offsetRange/sliderRange + offsetStart;
     ch2Offset >>= 8;
 
-    if (dsoAThread.dsoIO.dsoSetOffset(ch1Offset, ch2Offset, triggerOffset) < 0)
+    if (dsoAThread.dsoIO.dsoIsFound())
     {
-        qDebug("Error running SetOffset command");
+        if (dsoAThread.dsoIO.dsoSetOffset(ch1Offset, ch2Offset, triggerOffset) < 0)
+        {
+            qDebug("Error running SetOffset command");
+        }
     }
 }
 
@@ -299,9 +346,12 @@ void HantekDSOWidget::sliderTrigger_valueChanged(int value)
 
     triggerOffset = (sliderEnd - value)*offsetRange/sliderRange + offsetStart;
 
-    if (dsoAThread.dsoIO.dsoSetOffset(ch1Offset, ch2Offset, triggerOffset) < 0)
+    if (dsoAThread.dsoIO.dsoIsFound())
     {
-        qDebug("Error running SetOffset command");
+        if (dsoAThread.dsoIO.dsoSetOffset(ch1Offset, ch2Offset, triggerOffset) < 0)
+        {
+            qDebug("Error running SetOffset command");
+        }
     }
 }
 
@@ -346,10 +396,13 @@ void HantekDSOWidget::comboMathType_activated(int type)
 void HantekDSOWidget::sliderTriggerPos_valueChanged(int value)
 {
     triggerPosition = 0x77660 + value;
-    if (dsoAThread.dsoIO.dsoSetTriggerAndSampleRate(timeBase, selectedChannel,
-        triggerSource, triggerSlope, triggerPosition, dsoAThread.bufferSize) < 0)
+    if (dsoAThread.dsoIO.dsoIsFound())
     {
-        qDebug("Error running SetTriggerAndSampleRate command");
+        if (dsoAThread.dsoIO.dsoSetTriggerAndSampleRate(timeBase, selectedChannel,
+            triggerSource, triggerSlope, triggerPosition, dsoAThread.bufferSize) < 0)
+        {
+            qDebug("Error running SetTriggerAndSampleRate command");
+        }
     }
 }
 
@@ -357,10 +410,13 @@ void HantekDSOWidget::comboTriggerSource_activated(int source)
 {
     qDebug("Trigger source=%i", source);
     triggerSource = source;
-    if (dsoAThread.dsoIO.dsoSetTriggerAndSampleRate(timeBase, selectedChannel,
-        triggerSource, triggerSlope, triggerPosition, dsoAThread.bufferSize) < 0)
+    if (dsoAThread.dsoIO.dsoIsFound())
     {
-        qDebug("Error running SetTriggerAndSampleRate command");
+        if (dsoAThread.dsoIO.dsoSetTriggerAndSampleRate(timeBase, selectedChannel,
+            triggerSource, triggerSlope, triggerPosition, dsoAThread.bufferSize) < 0)
+        {
+            qDebug("Error running SetTriggerAndSampleRate command");
+        }
     }
 }
 
@@ -368,16 +424,20 @@ void HantekDSOWidget::comboTriggerSlope_activated(int slope)
 {
     qDebug("Trigger slope=%i", slope);
     triggerSlope = slope;
-    if (dsoAThread.dsoIO.dsoSetTriggerAndSampleRate(timeBase, selectedChannel,
-        triggerSource, triggerSlope, triggerPosition, dsoAThread.bufferSize) < 0)
+    if (dsoAThread.dsoIO.dsoIsFound())
     {
-        qDebug("Error running SetTriggerAndSampleRate command");
+        if (dsoAThread.dsoIO.dsoSetTriggerAndSampleRate(timeBase, selectedChannel,
+            triggerSource, triggerSlope, triggerPosition, dsoAThread.bufferSize) < 0)
+        {
+            qDebug("Error running SetTriggerAndSampleRate command");
+        }
     }
 }
 
 void HantekDSOWidget::comboTriggerMode_activated(int mode)
 {
-    qDebug("Trigger mode=%i", mode);
+    dsoAThread.setTriggerMode(mode);
+    qDebug("TriggerMode = %i", mode);
 }
 
 void HantekDSOWidget::timeDiv_activated(int div)
@@ -401,9 +461,12 @@ void HantekDSOWidget::checkCh1Filter_stateChanged(int filter)
 {
     ch1Filter = filter?1:0;
     qDebug("Channel1 filter=%i", ch1Filter);
-    if (dsoAThread.dsoIO.dsoSetFilter(ch1Filter, ch2Filter, triggerFilter) < 0)
+    if (dsoAThread.dsoIO.dsoIsFound())
     {
-        qDebug("Error running SetFilter command");
+        if (dsoAThread.dsoIO.dsoSetFilter(ch1Filter, ch2Filter, triggerFilter) < 0)
+        {
+            qDebug("Error running SetFilter command");
+        }
     }
 }
 
@@ -411,9 +474,12 @@ void HantekDSOWidget::checkCh2Filter_stateChanged(int filter)
 {
     ch2Filter = filter?1:0;
     qDebug("Channel2 filter=%i", ch2Filter);
-    if (dsoAThread.dsoIO.dsoSetFilter(ch1Filter, ch2Filter, triggerFilter) < 0)
+    if (dsoAThread.dsoIO.dsoIsFound())
     {
-        qDebug("Error running SetFilter command");
+        if (dsoAThread.dsoIO.dsoSetFilter(ch1Filter, ch2Filter, triggerFilter) < 0)
+        {
+            qDebug("Error running SetFilter command");
+        }
     }
 }
 
@@ -421,12 +487,14 @@ void HantekDSOWidget::checkTrigFilter_stateChanged(int filter)
 {
     triggerFilter = filter?1:0;
     qDebug("Trigger filter=%i", triggerFilter);
-    if (dsoAThread.dsoIO.dsoSetFilter(ch1Filter, ch2Filter, triggerFilter) < 0)
+    if (dsoAThread.dsoIO.dsoIsFound())
     {
-        qDebug("Error running SetFilter command");
+        if (dsoAThread.dsoIO.dsoSetFilter(ch1Filter, ch2Filter, triggerFilter) < 0)
+        {
+            qDebug("Error running SetFilter command");
+        }
     }
 }
-
 
 
 #include "hantekdsowidget.moc"

@@ -21,7 +21,8 @@
 #include <math.h>
 
 HantekDSOAThread::HantekDSOAThread()
- : QThread(), bufferSize(BUFFER_SMALL), calData(0), triggerPoint(0)
+ : QThread(), bufferSize(BUFFER_SMALL), calData(0), triggerPoint(0), triggerMode(TRIGGER_MODE_AUTO),
+    stopAcquisitionFlag(true), terminateFlag(false)
 {
     setBufferSize(bufferSize);
     memset(buffer, 0, sizeof(buffer));
@@ -34,28 +35,32 @@ HantekDSOAThread::~HantekDSOAThread()
 /*!
     \fn HantekDSOAThread::calibrateBuffer()
  */
+/*
 void HantekDSOAThread::calibrateBuffer()
 {
     for (unsigned int i = 0; i < bufferSize; i++)
     {
-        buffer[i][0] += calData/2 - 1;
+        buffer[i][0] -= calData/2 - 1;
     }
 }
+*/
 
 /*!
     \fn HantekDSOAThread::run()
  */
 void HantekDSOAThread::run()
 {
-    for(;;)
+    while(!terminateFlag)
     {
+        msleep(100);
+
         unsigned trPoint = 0;
         int rv = dsoIO.dsoGetCaptureState(&trPoint);
         if (rv < 0)
         {
             qDebug("Error in command GetCaptureState");
         }
-//        qDebug("TriggerPoint=%06X, rv=%i", trPoint, rv);
+//        qDebug("TriggerPoint=%06X, CaptureState=%i", trPoint, rv);
 
         if (rv == CAPTURE_SUCCESS)
         {
@@ -66,30 +71,44 @@ void HantekDSOAThread::run()
                     bufferMutex.unlock();
                     qDebug("Error in command GetChannelData");
                 }
-                calibrateBuffer();
                 bufferMutex.unlock();
 
-                if (dsoIO.dsoCaptureStart() < 0)
+                if (!stopAcquisitionFlag)
                 {
-                    qDebug("Error running CaptureStart command");
+                    if (triggerMode == TRIGGER_MODE_SINGLE)
+                    {
+                        stopAcquisitionFlag = true;
+                    }
+                    else
+                    {
+                        if (dsoIO.dsoCaptureStart() < 0)
+                        {
+                            qDebug("Error running CaptureStart command");
+                        }
+                    }
+                    if (triggerMode == TRIGGER_MODE_AUTO || triggerMode == TRIGGER_MODE_NORMAL)
+                    {
+                        if (dsoIO.dsoTriggerEnabled() < 0)
+                        {
+                            qDebug("Error running TriggerEnabled command");
+                        }
+                    }
+                    if (triggerMode == TRIGGER_MODE_AUTO)
+                    {
+                            if (dsoIO.dsoForceTrigger() < 0)
+                            {
+                                qDebug("Error running TriggerEnabled command");
+                            }
+                    }
                 }
-
-                if (dsoIO.dsoTriggerEnabled() < 0)
-                {
-                    qDebug("Error running TriggerEnabled command");
-                }
-/*
-                if (dsoIO.dsoForceTrigger() < 0)
-                {
-                    qDebug("Error running TriggerEnabled command");
-                }
-*/
         }
         else if (rv == CAPTURE_VALUE1)
         {
+            qDebug("CaptureState=1");
         }
         else if (rv == CAPTURE_VALUE0)
         {
+/*
             if (dsoIO.dsoCaptureStart() < 0)
             {
                 qDebug("Error running CaptureStart command");
@@ -99,6 +118,7 @@ void HantekDSOAThread::run()
             {
                 qDebug("Error running TriggerEnabled command");
             }
+*/
 /*
             if (dsoIO.dsoForceTrigger() < 0)
             {
@@ -106,9 +126,15 @@ void HantekDSOAThread::run()
             }
 */
         }
-
-        msleep(100);
     }
+}
+
+/*!
+    \fn HantekDSOAThread::stop()
+ */
+void HantekDSOAThread::stop()
+{
+    terminateFlag = true;
 }
 
 
@@ -126,12 +152,37 @@ void HantekDSOAThread::setBufferSize(unsigned bufferSize)
     }
     transformSize >>= 1;
 
+    // Calculate Hann window coefficients
     for(unsigned i = 0; i < transformSize; i++)
     {
         // Hann window
         windowCoeff[i] = 0.5 * (1.0 -
             cos( (2.0 * M_PI * (double)i) / (double)transformSize));
     }
+}
+
+/*!
+    \fn HantekDSOAThread::setTriggerMode(int triggerMode)
+ */
+void HantekDSOAThread::setTriggerMode(int triggerMode)
+{
+    this->triggerMode = triggerMode;
+}
+
+/*!
+    \fn HantekDSOAThread::getTriggerMode()
+ */
+int HantekDSOAThread::getTriggerMode()
+{
+    return triggerMode;
+}
+
+/*!
+    \fn HantekDSOAThread::setStopAcquisitionFlag(int stopAcquisitionFlag)
+ */
+void HantekDSOAThread::setStopAcquisitionFlag(int stopAcquisitionFlag)
+{
+    this->stopAcquisitionFlag = stopAcquisitionFlag;
 }
 
 /*!
@@ -152,6 +203,7 @@ void HantekDSOAThread::transform()
 {
     for (int t=0; t < MAX_CHANNELS; t++)
     {
+        // Apply Hann window
         for(unsigned i = 0; i < transformSize; i++)
         {
             fhtBuffer[t][i] *= windowCoeff[i];
@@ -159,10 +211,11 @@ void HantekDSOAThread::transform()
         fht.transform(fhtBuffer[t], transformSize, 1);
     }
 
-    double totalPower[MAX_CHANNELS] = { 0, 0 };
     for (int t = 0; t < MAX_CHANNELS; t++)
     {
-        for (unsigned i = 0; i < transformSize/2; i++)
+        double maxPower = 0;
+        unsigned halfSize = transformSize/2;
+        for (unsigned i = 0; i < halfSize; i++)
         {
             double power = sqrt(
                 (fhtBuffer[t][transformSize-1-i]+fhtBuffer[t][i])*
@@ -170,15 +223,16 @@ void HantekDSOAThread::transform()
                 (fhtBuffer[t][transformSize-1-i]-fhtBuffer[t][i])*
                 (fhtBuffer[t][transformSize-1-i]-fhtBuffer[t][i]));
             fhtBuffer[t][i] = power;
-            totalPower[t] += power;
+            if (power > maxPower)
+            {
+                maxPower = power;
+            }
         }
-    }
 
-    for (int t = 0; t < MAX_CHANNELS; t++)
-    {
-        for (unsigned i = 0; i < transformSize/2; i++)
+        for (unsigned i = 0; i < halfSize; i++)
         {
-            fhtBuffer[t][i] = 160 + 10 * log(fhtBuffer[t][i]/totalPower[t]);
+//            fhtBuffer[t][i] = -10*log(fhtBuffer[t][i]/maxPower)/256;
+            fhtBuffer[t][i] = 2*fhtBuffer[t][i]/maxPower;
         }
     }
 }

@@ -1,0 +1,13 @@
+Version 0.4
+- Fixed error leads to segfault when activating some GUI elements while DSO not connected.
+- Fixed bug in usb bulk packets length leads to "ReadPipe (async - returning err e000404f)" on MacOS-X. Thanks to Johan Ro.
+- Disconnection of channels is now working properly.
+- Synchronization mode switch (AUTO, NORMAL, SINGLE) is working now.
+
+Version 0.3
+- A small README file with installation instructions was added.
+- Now hantekdso automatically searches for models other than DSO-2150.
+- An error was fixed that produced the message "bfd_check_format: File format is ambiguous"
+in dsoextractfw on the x64 architecture.
+- An error was fixed that produced the message "usbfs: process xxxxx (hantekdso) did not claim interface 0
+before use" and other improvements were made in the USB code
