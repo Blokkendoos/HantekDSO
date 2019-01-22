@@ -824,7 +824,7 @@ dist-hook:
 .NOEXPORT:
 
 #>+ 2
-KDE_DIST=hantekdso.kdevelop stamp-h.in subdirs Makefile.in configure.files config.h.in hantekdso.kdevses HantekDSO.kdevelop.pcs configure.in Makefile.cvs aclocal.m4 Doxyfile acinclude.m4 Makefile.am configure 
+KDE_DIST=hantekdso.kdevelop stamp-h.in subdirs Makefile.in HantekDSO-0.1.tar.gz configure.files config.h.in hantekdso.kdevses HantekDSO.kdevelop.pcs configure.in Makefile.cvs aclocal.m4 Doxyfile acinclude.m4 Makefile.am configure 
 
 #>+ 2
 docs-am:

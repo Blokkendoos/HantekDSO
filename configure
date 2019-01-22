@@ -33404,6 +33404,8 @@ ac_config_files="$ac_config_files doc/Makefile"
 
 ac_config_files="$ac_config_files doc/en/Makefile"
 
+ac_config_files="$ac_config_files dsoextractfw/Makefile"
+
 ac_config_files="$ac_config_files po/Makefile"
 
 ac_config_files="$ac_config_files src/Makefile"
@@ -34018,6 +34020,7 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
     "doc/en/Makefile") CONFIG_FILES="$CONFIG_FILES doc/en/Makefile" ;;
+    "dsoextractfw/Makefile") CONFIG_FILES="$CONFIG_FILES dsoextractfw/Makefile" ;;
     "po/Makefile") CONFIG_FILES="$CONFIG_FILES po/Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
 
