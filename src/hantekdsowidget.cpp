@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2008 by Oleg Khudyakov                                  *
- *   prcoder@potrebitel.ru                                                 *
+ *   prcoder@gmail.com                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,7 +25,7 @@
 #include "glbox.h"
 
 HantekDSOWidget::HantekDSOWidget(QWidget* parent, const char* name, WFlags fl)
-        : HantekDSOWidgetBase(parent,name,fl), dsoModel(DSO_2150), timeBase(TIME_1ms),
+        : HantekDSOWidgetBase(parent,name,fl), timeBase(TIME_1ms),
           selectedChannel(SELECT_CH1CH2), ch1Active(1), ch2Active(1),
           ch1Voltage(VOLTAGE_5V), ch2Voltage(VOLTAGE_5V),
           ch1Coupling(COUPLING_DC), ch2Coupling(COUPLING_DC),
@@ -58,9 +58,9 @@ void HantekDSOWidget::polish(void)
  */
 int HantekDSOWidget::startDSO()
 {
-    if (dsoAThread.dsoIO.initDSO(dsoModel) == 0)
+    if (dsoAThread.dsoIO.dsoInit() == 0)
     {
-        textInfo->setText("DSO found");
+        textInfo->setText(QString( "DSO model %1 found").arg(dsoAThread.dsoIO.dsoGetModel(), 0, 16));
 
         if (dsoAThread.dsoIO.dsoGetChannelLevel(&chLevels) < 0)
         {
@@ -72,12 +72,7 @@ int HantekDSOWidget::startDSO()
                 for(int k=0; k<2; k++)
                     qDebug("%04X", chLevels[i][j][k]);
 */
-        if (dsoAThread.dsoIO.dsoGetCalData(&calData) < 0)
-        {
-            qDebug("Error running GetCalData command");
-        }
-        qDebug("CalData=%i", calData);
-        gLBox1->setCalData((double)calData/2);
+        dsoAThread.getCalData();
 
         if (dsoAThread.dsoIO.dsoSetTriggerAndSampleRate(timeBase, selectedChannel, triggerSource, triggerSlope, triggerPosition, dsoAThread.bufferSize) < 0)
         {
@@ -102,6 +97,7 @@ int HantekDSOWidget::startDSO()
 
         sliderCh1_valueChanged(sliderCh1->value());
         sliderCh2_valueChanged(sliderCh2->value());
+        sliderChM_valueChanged(sliderChM->value());
         sliderTrigger_valueChanged(sliderTrigger->value());
         dsoAThread.start();
 
@@ -277,6 +273,20 @@ void HantekDSOWidget::sliderCh2_valueChanged(int value)
     }
 }
 
+void HantekDSOWidget::sliderChM_valueChanged(int value)
+{
+    unsigned offsetStart = 0;
+    unsigned offsetEnd = VOLTAGE_SCALE;
+    unsigned offsetRange = offsetEnd - offsetStart;
+
+    unsigned sliderStart = sliderChM->minValue();
+    unsigned sliderEnd = sliderChM->maxValue(); 
+    unsigned sliderRange = sliderEnd - sliderStart;
+
+    int chMOffset = (sliderEnd - value)*offsetRange/sliderRange + offsetStart;
+    gLBox1->setChMOffset(chMOffset);
+}
+
 void HantekDSOWidget::sliderTrigger_valueChanged(int value)
 {
     unsigned offsetStart = 0x00;
@@ -416,6 +426,8 @@ void HantekDSOWidget::checkTrigFilter_stateChanged(int filter)
         qDebug("Error running SetFilter command");
     }
 }
+
+
 
 #include "hantekdsowidget.moc"
 

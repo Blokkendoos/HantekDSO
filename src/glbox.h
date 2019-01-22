@@ -1,3 +1,22 @@
+/***************************************************************************
+ *   Copyright (C) 2008 by Oleg Khudyakov                                  *
+ *   prcoder@gmail.com                                                 *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
 #ifndef _GLBOX_H_
 #define _GLBOX_H_
 #include <qgl.h>
@@ -55,8 +74,8 @@ public:
     void setAThread(HantekDSOAThread* pAThread);
     void setViewMode(int mode);
     void setMathType(int type);
+    void setChMOffset(int offset);
     void setInterpolation(int state);
-    void setCalData(double data);
     void setDigitalPhosphor(int state);
     void setTimeDiv(double div);
     void setTimeShift(double shift);
@@ -72,11 +91,10 @@ private:
     GLuint gl_grid, gl_channels;
     SansFont font;
     static const GLfloat chColor[MAX_CHANNELS+1][4];
-    double calData;
     int digitalPhosphor;
     int dpIndex;
     int viewMode;
-    int mathType;
+    int mathType, chMOffset;
     int interpolationMode;
     double timeDiv;
     double timeShift;

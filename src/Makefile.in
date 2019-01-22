@@ -768,7 +768,7 @@ clean-metasources:
 	-rm -f  hantekdso.moc glbox.moc.cpp hantekdsowidget.moc
 
 #>+ 2
-KDE_DIST=hi32-app-hantekdso.png hantekdsowidget.h Makefile.in hi16-app-hantekdso.png hantekdsowidgetbase.ui hantekdso.desktop hantekdsoui.rc hantekdso.lsm DEADJOE Makefile.am 
+KDE_DIST=hi32-app-hantekdso.png hantekdsowidget.h Makefile.in hi16-app-hantekdso.png hantekdsowidgetbase.ui hantekdso.desktop hantekdsoui.rc hantekdso.lsm Makefile.am 
 
 #>+ 4
 clean-ui:

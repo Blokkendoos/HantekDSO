@@ -15,6 +15,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -48,8 +49,8 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-dsoextractfw_SOURCES = dsoextractfw.c
-#>- dsoextractfw_OBJECTS = dsoextractfw.$(OBJEXT)
+am_dsoextractfw_OBJECTS = dsoextractfw.$(OBJEXT)
+#>- dsoextractfw_OBJECTS = $(am_dsoextractfw_OBJECTS)
 #>+ 1
 dsoextractfw_OBJECTS = dsoextractfw.$(OBJEXT)
 dsoextractfw_DEPENDENCIES =
@@ -68,8 +69,9 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = dsoextractfw.c
-DIST_SOURCES = dsoextractfw.c
+SOURCES = $(dsoextractfw_SOURCES)
+DIST_SOURCES = $(dsoextractfw_SOURCES)
+DATA = $(noinst_DATA)
 ETAGS = etags
 CTAGS = ctags
 #>- DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -321,6 +323,8 @@ xdg_menudir = @xdg_menudir@
 #>- METASOURCES = AUTO
 dsoextractfw_LDFLAGS = $(all_libraries)
 dsoextractfw_LDADD = -lbfd -liberty
+dsoextractfw_SOURCES = dsoextractfw.c
+noinst_DATA = HantekDSO.rules
 #>- all: all-am
 #>+ 1
 all: docs-am  all-am
@@ -512,7 +516,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(PROGRAMS)
+all-am: Makefile $(PROGRAMS) $(DATA)
 installdirs:
 	for dir in "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
@@ -624,7 +628,7 @@ uninstall-am: uninstall-binPROGRAMS
 .NOEXPORT:
 
 #>+ 2
-KDE_DIST=HantekDSO.rules Makefile.am Makefile.in 
+KDE_DIST=Makefile.in HantekDSO.rules Makefile.am 
 
 #>+ 2
 docs-am:

@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2008 by Oleg Khudyakov   *
- *   prcoder@potrebitel.ru   *
+ *   prcoder@gmail.com   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -19,68 +19,133 @@
  ***************************************************************************/
 #include "hantekdsoio.h"
 #include <qapplication.h>
-#include <usb.h>
 #include <errno.h>
 #include <string.h>
 
-HantekDSOIO::HantekDSOIO() : usbDSOHandle(0), timeout(300)
+HantekDSOIO::HantekDSOIO() : deviceModel(0), usbDSOHandle(0), interfaceNumber(0),
+    interfaceIsClaimed(false), timeout(300)
 {
 }
-
 
 HantekDSOIO::~HantekDSOIO()
 {
+    if (interfaceIsClaimed)
+    {
+        if (::usb_release_interface(usbDSOHandle, interfaceNumber))
+        {
+            qDebug("Not able to release USB interface");
+        }
+    }
+
+    if (usbDSOHandle)
+    {
+        if (::usb_close(usbDSOHandle))
+        {
+            qDebug("Can't close USB handle");
+        }
+    }
 }
 
+const unsigned short HantekDSOIO::deviceModelsList[] =
+    { DSO_2090, DSO_2100, DSO_2150, DSO_2250, DSO_5200, DSO_LAST };
 
 /*!
-    \fn HantekDSOIO::findDSO(unsigned short deviceModel)
+    \fn HantekDSOIO::dsoInit()
  */
-struct usb_device* HantekDSOIO::findDSO(unsigned short deviceModel)
+int HantekDSOIO::dsoInit()
 {
-    struct usb_bus *usb_bus;
-    struct usb_device *dev;
+    dsoIOMutex.lock();
 
     ::usb_init();
     ::usb_find_busses();
     ::usb_find_devices();
 
-    for (usb_bus = usb_busses; usb_bus; usb_bus = usb_bus->next) {
-        for (dev = usb_bus->devices; dev; dev = dev->next) {
-            if ((dev->descriptor.idVendor == deviceVendor) &&
-                (dev->descriptor.idProduct == deviceModel))
-                return dev;
+    struct usb_device *usbDSO = NULL;
+    for (struct usb_bus *usb_bus = usb_busses; usb_bus; usb_bus = usb_bus->next)
+    {
+        for (struct usb_device *dev = usb_bus->devices; dev; dev = dev->next)
+        {
+            if (dev->descriptor.idVendor == deviceVendor)
+            {
+                for (int i = 0; deviceModelsList[i] != DSO_LAST; i++)
+                {
+                    if (dev->descriptor.idProduct == deviceModelsList[i])
+                    {
+                        usbDSO = dev;
+                        deviceModel = dev->descriptor.idProduct;
+                        qDebug("Hantek DSO model %4X found", deviceModel);
+                        break;
+                    }
+                }
+            }
         }
     }
 
-    return NULL;
-}
-
-/*!
-    \fn HantekDSOIO::initDSO(unsigned short deviceModel)
- */
-int HantekDSOIO::initDSO(unsigned short deviceModel)
-{
-    dsoIOMutex.lock();
-
-    struct usb_device* usbDSO = findDSO(deviceModel);
     if (usbDSO == NULL)
     {
         dsoIOMutex.unlock();
-        qDebug("Hantek DSO-%4X not found", deviceModel);
+        qDebug("Hantek DSO not found");
         return -1;
     }
 
-    usbDSOHandle = usb_open(usbDSO);
-    if (usbDSOHandle == NULL) {
+    usbDSOHandle = ::usb_open(usbDSO);
+    if (usbDSOHandle == NULL)
+    {
         dsoIOMutex.unlock();
-        qDebug("Not able to claim the DSO-%4X", deviceModel);
+        qDebug("Can't open USB device");
         return -2;
     }
 
+    struct usb_config_descriptor *usbConfig = usbDSO->config;
+    for (int i = 0; i < usbConfig->bNumInterfaces; i++)
+    {
+        struct usb_interface *usbInterface = &usbConfig->interface[i];
+        if (usbInterface->num_altsetting < 1)
+            continue;
+
+        struct usb_interface_descriptor *usbInterfaceDescr = &usbInterface->altsetting[0];
+        if (usbInterfaceDescr->bInterfaceClass == USB_CLASS_VENDOR_SPEC
+            && usbInterfaceDescr->bInterfaceSubClass == 0
+            && usbInterfaceDescr->bInterfaceProtocol == 0
+            && usbInterfaceDescr->bNumEndpoints == 2)
+        {
+            if (::usb_claim_interface(usbDSOHandle, usbInterfaceDescr->bInterfaceNumber))
+            {
+                if (::usb_close(usbDSOHandle))
+                {
+                    qDebug("Can't close USB handle");
+                }
+
+                dsoIOMutex.unlock();
+                qDebug("Not able to claim USB interface");
+                return -3;
+            }
+
+            interfaceNumber = usbInterfaceDescr->bInterfaceNumber;
+            interfaceIsClaimed = true;
+            break;
+        }
+    }
+
+    if (!interfaceIsClaimed)
+    {
+        qDebug("Can't find USB interface (Class:0xFF, SubClass:0, Protocol:0) with two endpoints");
+        return -4;
+    }
+
     dsoIOMutex.unlock();
+
     return 0;
 }
+
+/*!
+    \fn HantekDSOIO::getDSOModel()
+ */
+unsigned short HantekDSOIO::dsoGetModel()
+{
+    return deviceModel;
+}
+
 
 /*!
     \fn HantekDSOIO::writeBulk(void *buffer, int len)

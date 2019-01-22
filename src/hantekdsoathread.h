@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2008 by Oleg Khudyakov                                  *
- *   prcoder@potrebitel.ru                                                 *
+ *   prcoder@gmail.com                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -41,6 +41,8 @@ public:
 
     virtual void run();
     virtual void setBufferSize(unsigned bufferSize);
+    virtual void getCalData();
+    virtual void calibrateBuffer();
     virtual void transform();
 
 public:
@@ -49,6 +51,7 @@ public:
     FHT fht;
     unsigned bufferSize, transformSize;
     unsigned char buffer[BUFFER_LARGE][MAX_CHANNELS];
+    int calData;
     unsigned triggerPoint;
     double fhtBuffer[MAX_CHANNELS][BUFFER_LARGE];
     double windowCoeff[BUFFER_LARGE];

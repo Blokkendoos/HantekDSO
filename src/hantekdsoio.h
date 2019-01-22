@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2008 by Oleg Khudyakov   *
- *   prcoder@potrebitel.ru   *
+ *   prcoder@gmail.com   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,10 +20,21 @@
 #ifndef HANTEKDSOIO_H
 #define HANTEKDSOIO_H
 
+#include <usb.h>
 #include <qmutex.h>
 
 #define EP_BULK_OUT 2   // Endpoint for sending commands to DSO
 #define EP_BULK_IN  6   // Endpoint for reading data from DSO
+
+enum dso_models
+{
+    DSO_2090 = 0x2090,
+    DSO_2100 = 0x2100,
+    DSO_2150 = 0x2150,
+    DSO_2250 = 0x2250,
+    DSO_5200 = 0x5200,
+    DSO_LAST = 0
+};
 
 enum dso_commands
 {
@@ -202,7 +213,8 @@ public:
     HantekDSOIO();
     ~HantekDSOIO();
 
-    int initDSO(unsigned short deviceModel);
+    int dsoInit();
+    unsigned short dsoGetModel();
     int dsoSetFilter(int channel1, int channel2, int trigger);
     int dsoSetTriggerAndSampleRate(int timeBase, int selectedChannel, int triggerSource, int triggerSlope, int triggerPosition, int bufferSize);
     int dsoForceTrigger();
@@ -222,7 +234,6 @@ public:
     int dsoSetOffset(int ch1Offset, int ch2Offset, int extOffset);
 
 protected:
-    struct usb_device* findDSO(unsigned short deviceModel);
     int writeBulk(void* buffer, int len);
     int readBulk(void* buffer, int len);
     int writeControl(unsigned char request, void* buffer, int len, int value = 0, int index = 0);
@@ -234,7 +245,11 @@ protected:
 
 private:
     static const unsigned short deviceVendor = 0x04b5; // Hantek DSO after renumeration
-    struct usb_dev_handle* usbDSOHandle;
+    static const unsigned short deviceModelsList[];
+    unsigned short deviceModel;
+    struct usb_dev_handle *usbDSOHandle;
+    int interfaceNumber;
+    bool interfaceIsClaimed;
     QMutex dsoIOMutex;
     int timeout;
 };

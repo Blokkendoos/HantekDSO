@@ -1,0 +1,11 @@
+# CMake assets
+CMakeCache.txt
+CMakeLists.txt.user
+CTestTestfile.cmake
+CMakeFiles/
+CMakeTmp/
+Makefile
+
+# HantekDSO build files
+build/
+

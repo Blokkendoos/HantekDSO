@@ -1,12 +1,22 @@
-/****************************************************************************
-** $Id: qt/glbox.cpp   3.3.8   edited Jan 11 14:37 $
-**
-** Copyright (C) 1992-2007 Trolltech ASA.  All rights reserved.
-**
-** This file is part of an example program for Qt.  This example
-** program may be used, distributed and modified without limitation.
-**
-*****************************************************************************/
+/***************************************************************************
+ *   Copyright (C) 2008 by Oleg Khudyakov                                  *
+ *   prcoder@gmail.com                                                 *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
 #include "glbox.h"
 #include "hantekdsoathread.h"
 #include "fht.h"
@@ -15,12 +25,13 @@
 const GLfloat GLBox::chColor[MAX_CHANNELS+1][4] = {
     {0.0, 1.0, 1.0, 1.0}, // CH2 Color
     {1.0, 0.0, 0.0, 1.0}, // CH1 Color
-    {0.0, 1.0, 0.0, 1.0}  // MATH Color
+    {0.0, 1.0, 0.0, 1.0}  // CHM Color
 };
 
 GLBox::GLBox(QWidget* parent, const char* name) : QGLWidget(parent, name),
-    aThread(0), gl_grid(0), calData(0), digitalPhosphor(0), dpIndex(0), viewMode(VIEWMODE_XT),
-    mathType(MATHTYPE_OFF), interpolationMode(INTERPOLATION_LINEAR), timeDiv(1), timeShift(0)
+    aThread(0), gl_grid(0), digitalPhosphor(0), dpIndex(0), viewMode(VIEWMODE_XT),
+    mathType(MATHTYPE_OFF), chMOffset(0), interpolationMode(INTERPOLATION_LINEAR),
+    timeDiv(1), timeShift(0)
 {
 }
 
@@ -120,13 +131,13 @@ void GLBox::paintGL()
                         switch(mathType)
                         {
                             case MATHTYPE_1ADD2:
-                                glVertex2f(i, ch1Val + ch2Val + VOLTAGE_SCALE/2);
+                                glVertex2f(i, ch1Val + ch2Val + chMOffset);
                                 break;
                             case MATHTYPE_1SUB2:
-                                glVertex2f(i, ch1Val - ch2Val + VOLTAGE_SCALE/2);
+                                glVertex2f(i, ch1Val - ch2Val + chMOffset);
                                 break;
                             case MATHTYPE_2SUB1:
-                                glVertex2f(i, ch2Val - ch1Val + VOLTAGE_SCALE/2);
+                                glVertex2f(i, ch2Val - ch1Val + chMOffset);
                                 break;
                         }
                     }
@@ -141,7 +152,7 @@ void GLBox::paintGL()
                 glPushMatrix();
                 glColor4f(0.0, 1.0, 0.0, 1.0);
                 glTranslatef(-DIVS_TIME/2, -DIVS_VOLTAGE/2, 0.0);
-                str=QString("%1 ms/div").arg(1);
+                str=QString("%1").arg("400ms");
                 font.glString(str, 0.3);
                 glPopMatrix();
 */
@@ -159,6 +170,7 @@ void GLBox::paintGL()
                 }
                 if (mathType != MATHTYPE_OFF)
                 {
+                    // TODO: find error in math channel digital phosphor code
                     for (int i = (digitalPhosphor?DP_DEPTH:0); i >= 0; i--)
                     {
                         glColor4f(chColor[MAX_CHANNELS][0], chColor[MAX_CHANNELS][1],
@@ -258,15 +270,15 @@ void GLBox::setMathType(int type)
     updateGL();
 }
 
-void GLBox::setInterpolation(int state)
+void GLBox::setChMOffset(int offset)
 {
-    interpolationMode = state;
+    chMOffset = offset;
     updateGL();
 }
 
-void GLBox::setCalData(double data)
+void GLBox::setInterpolation(int state)
 {
-    calData = data;
+    interpolationMode = state;
     updateGL();
 }
 

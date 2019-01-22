@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2008 by Oleg Khudyakov                                  *
- *   prcoder@potrebitel.ru                                                 *
+ *   prcoder@gmail.com                                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -21,7 +21,7 @@
 #include <math.h>
 
 HantekDSOAThread::HantekDSOAThread()
- : QThread(), bufferSize(BUFFER_SMALL), triggerPoint(0)
+ : QThread(), bufferSize(BUFFER_SMALL), calData(0), triggerPoint(0)
 {
     setBufferSize(bufferSize);
     memset(buffer, 0, sizeof(buffer));
@@ -29,6 +29,17 @@ HantekDSOAThread::HantekDSOAThread()
 
 HantekDSOAThread::~HantekDSOAThread()
 {
+}
+
+/*!
+    \fn HantekDSOAThread::calibrateBuffer()
+ */
+void HantekDSOAThread::calibrateBuffer()
+{
+    for (unsigned int i = 0; i < bufferSize; i++)
+    {
+        buffer[i][0] += calData/2 - 1;
+    }
 }
 
 /*!
@@ -55,6 +66,7 @@ void HantekDSOAThread::run()
                     bufferMutex.unlock();
                     qDebug("Error in command GetChannelData");
                 }
+                calibrateBuffer();
                 bufferMutex.unlock();
 
                 if (dsoIO.dsoCaptureStart() < 0)
@@ -122,6 +134,16 @@ void HantekDSOAThread::setBufferSize(unsigned bufferSize)
     }
 }
 
+/*!
+    \fn HantekDSOAThread::getCalData()
+ */
+void HantekDSOAThread::getCalData()
+{
+        if (dsoIO.dsoGetCalData(&calData) < 0)
+        {
+            qDebug("Error running GetCalData command");
+        }
+}
 
 /*!
     \fn HantekDSOAThread::transform()

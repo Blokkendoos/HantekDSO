@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2008 by Oleg Khudyakov   *
- *   prcoder@potrebitel.ru   *
+ *   prcoder@gmail.com   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,11 +25,6 @@
 #include "hantekdsowidgetbase.h"
 #include "hantekdsoathread.h"
 #include <qtimer.h>
-
-enum dso_models
-{
-    DSO_2150 = 0x2150
-};
 
 enum channel_activity
 {
@@ -60,7 +55,6 @@ protected:
 protected:
     HantekDSOAThread dsoAThread;
     QTimer refreshTimer;
-    unsigned short dsoModel;
     int timeBase;
     int selectedChannel;
     int ch1Active, ch2Active;
@@ -86,6 +80,7 @@ public slots:
     virtual void sliderTriggerPos_valueChanged(int);
     virtual void sliderCh1_valueChanged(int);
     virtual void sliderCh2_valueChanged(int);
+    virtual void sliderChM_valueChanged(int);
     virtual void sliderTrigger_valueChanged(int);
     virtual void buttonStop_clicked();
     virtual void comboDisplayInterpolation_activated(int);
