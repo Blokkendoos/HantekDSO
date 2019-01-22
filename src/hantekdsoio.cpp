@@ -23,7 +23,7 @@
 #include <string.h>
 
 HantekDSOIO::HantekDSOIO() : deviceModel(0), usbDSOHandle(0), interfaceNumber(0),
-    interfaceIsClaimed(false), epOutMaxPacketLen(0), epInMaxPacketLen(0), timeout(300), attempts(3)
+    interfaceIsClaimed(false), epOutMaxPacketLen(0), epInMaxPacketLen(0), timeout(500), attempts(5)
 {
 }
 
@@ -47,7 +47,7 @@ HantekDSOIO::~HantekDSOIO()
 }
 
 const unsigned short HantekDSOIO::deviceModelsList[] =
-    { DSO_2090, DSO_2100, DSO_2150, DSO_2250, DSO_5200, DSO_LAST };
+    { DSO_2090, DSO_2100, DSO_2150, DSO_2250, DSO_5200, DSO_5200A, DSO_LAST };
 
 /*!
     \fn HantekDSOIO::dsoInit()

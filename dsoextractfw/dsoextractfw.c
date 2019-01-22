@@ -27,7 +27,7 @@ static const char *strFirmware = "_firmware";
 static const char *strLoader = "_loader";
 static const char *strHex = ".hex";
 static const char *strDriver = "1.SYS";
-static const char *strModels[] = { "DSO2090", "DSO2100", "DSO2150", "DSO2250", "DSO520A", NULL };
+static const char *strModels[] = { "DSO2090", "DSO2100", "DSO2150", "DSO2250", "DSO5200", "DSO520A", NULL };
 
 int writeSRecords(const char *filename, unsigned char *ptr, bfd_size_type len);
 int extractFirmware(const char* model);

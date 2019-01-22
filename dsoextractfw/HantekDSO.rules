@@ -10,5 +10,8 @@ SUBSYSTEM=="usb", ACTION=="add", ENV{DEVTYPE}=="usb_device", ENV{PRODUCT}=="4b4/
 # Hantek DSO-2250
 SUBSYSTEM=="usb", ACTION=="add", ENV{DEVTYPE}=="usb_device", ENV{PRODUCT}=="4b4/2250/*", RUN+="/sbin/fxload -t fx2 -I /usr/share/HantekDSO/DSO2250_firmware.hex -s /usr/share/HantekDSO/DSO2250_loader.hex -D $env{DEVNAME}"
 
+# Hantek DSO-5200
+SUBSYSTEM=="usb", ACTION=="add", ENV{DEVTYPE}=="usb_device", ENV{PRODUCT}=="4b4/5200/*", RUN+="/sbin/fxload -t fx2 -I /usr/share/HantekDSO/DSO5200_firmware.hex -s /usr/share/HantekDSO/DSO5200_loader.hex -D $env{DEVNAME}"
+
 # Hantek DSO-5200A
 SUBSYSTEM=="usb", ACTION=="add", ENV{DEVTYPE}=="usb_device", ENV{PRODUCT}=="4b4/520A/*", RUN+="/sbin/fxload -t fx2 -I /usr/share/HantekDSO/DSO520A_firmware.hex -s /usr/share/HantekDSO/DSO520A_loader.hex -D $env{DEVNAME}"

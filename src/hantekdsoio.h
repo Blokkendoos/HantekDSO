@@ -33,6 +33,7 @@ enum dso_models
     DSO_2150 = 0x2150,
     DSO_2250 = 0x2250,
     DSO_5200 = 0x5200,
+    DSO_5200A = 0x520A,
     DSO_LAST = 0
 };
 
