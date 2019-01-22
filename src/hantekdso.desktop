@@ -1,0 +1,8 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=HantekDSO
+Exec=hantekdso
+Icon=hantekdso
+Type=Application
+Comment=Hantek USB oscilloscope
+Comment[ru]=USB Осциллограф Hantek
