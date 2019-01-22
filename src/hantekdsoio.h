@@ -141,6 +141,7 @@ enum getcapturestate_return_values
     CAPTURE_VALUE0 = 0,
     CAPTURE_VALUE1 = 1,
     CAPTURE_SUCCESS = 2,
+    CAPTURE_VALUE7 = 7,
     CAPTURE_TIMEOUT = 127
 };
 

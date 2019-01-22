@@ -64,6 +64,8 @@ public:
     int calData;
     unsigned triggerPoint;
     int triggerMode;
+    int forceCount;
+    int forceCountMax;
     bool stopAcquisitionFlag;
     bool terminateFlag;
     double fhtBuffer[MAX_CHANNELS][BUFFER_LARGE];

@@ -22,7 +22,7 @@
 
 HantekDSOAThread::HantekDSOAThread()
  : QThread(), bufferSize(BUFFER_SMALL), calData(0), triggerPoint(0), triggerMode(TRIGGER_MODE_AUTO),
-    stopAcquisitionFlag(true), terminateFlag(false)
+    forceCount(0), forceCountMax(3), stopAcquisitionFlag(true), terminateFlag(false)
 {
     setBufferSize(bufferSize);
     memset(buffer, 0, sizeof(buffer));
@@ -62,7 +62,7 @@ void HantekDSOAThread::run()
         }
 //        qDebug("TriggerPoint=%06X, CaptureState=%i", trPoint, rv);
 
-        if (rv == CAPTURE_SUCCESS)
+        if (rv == CAPTURE_SUCCESS | rv == CAPTURE_VALUE7)
         {
                 bufferMutex.lock();
                 triggerPoint = trPoint;
@@ -102,29 +102,29 @@ void HantekDSOAThread::run()
                     }
                 }
         }
-        else if (rv == CAPTURE_VALUE1)
+        else if (rv == CAPTURE_VALUE0 || rv == CAPTURE_VALUE1)
         {
-            qDebug("CaptureState=1");
-        }
-        else if (rv == CAPTURE_VALUE0)
-        {
-/*
-            if (dsoIO.dsoCaptureStart() < 0)
+            qDebug("CaptureState=%i", rv);
+            if (forceCount++ >= forceCountMax)
             {
-                qDebug("Error running CaptureStart command");
-            }
+                forceCount = 0;
+                if (dsoIO.dsoForceTrigger() < 0)
+                {
+                    qDebug("Error running TriggerEnabled command");
+                }
+                qDebug("Trigger forced");
+/*
+                if (dsoIO.dsoCaptureStart() < 0)
+                {
+                    qDebug("Error running CaptureStart command");
+                }
 
-            if (dsoIO.dsoTriggerEnabled() < 0)
-            {
-                qDebug("Error running TriggerEnabled command");
-            }
+                if (dsoIO.dsoTriggerEnabled() < 0)
+                {
+                    qDebug("Error running TriggerEnabled command");
+                }
 */
-/*
-            if (dsoIO.dsoForceTrigger() < 0)
-            {
-                qDebug("Error running TriggerEnabled command");
             }
-*/
         }
     }
 }
