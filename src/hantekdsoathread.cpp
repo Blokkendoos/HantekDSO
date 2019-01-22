@@ -21,8 +21,9 @@
 #include <math.h>
 
 HantekDSOAThread::HantekDSOAThread()
- : QThread(), bufferSize(BUFFER_SMALL), calData(0), triggerPoint(0), triggerMode(TRIGGER_MODE_AUTO),
-    forceCount(0), forceCountMax(3), stopAcquisitionFlag(true), terminateFlag(false)
+ : QThread(), bufferSize(BUFFER_SMALL/*BUFFER_LARGE*/), calData(0),
+    triggerPoint(0), triggerMode(TRIGGER_MODE_AUTO), forceRestartCount(0), forceRestartCountMax(3),
+    terminateFlag(false)
 {
     setBufferSize(bufferSize);
     memset(buffer, 0, sizeof(buffer));
@@ -39,18 +40,47 @@ void HantekDSOAThread::run()
 {
     while(!terminateFlag)
     {
-        msleep(100);
-
         unsigned trPoint = 0;
-        int rv = dsoIO.dsoGetCaptureState(&trPoint);
-        if (rv < 0)
+        int captureState = dsoIO.dsoGetCaptureState(&trPoint);
+        if (captureState < 0)
         {
             qDebug("Error in command GetCaptureState");
         }
-//        qDebug("TriggerPoint=%06X, CaptureState=%i", trPoint, rv);
+//        qDebug("TriggerPoint=%06X, CaptureState=%i", trPoint, captureState);
 
-        if (rv == CAPTURE_SUCCESS | rv == CAPTURE_VALUE7)
+        unsigned timeBase = dsoIO.dsoGetTimeBase();
+        switch(captureState)
         {
+            case CAPTURE_VALUE0:    // Buffer is empty
+                if (forceRestartCount++ >= forceRestartCountMax)
+                {
+                    forceRestartCount = 0;
+                    if (dsoIO.dsoCaptureStart() < 0)
+                    {
+                        qDebug("Error running CaptureStart command");
+                    }
+                    if (dsoIO.dsoTriggerEnabled() < 0)
+                    {
+                        qDebug("Error running TriggerEnabled command");
+                    }
+                    if (triggerMode == TRIGGER_MODE_AUTO)
+                    {
+                        if (dsoIO.dsoForceTrigger() < 0)
+                        {
+                            qDebug("Error running TriggerEnabled command");
+                        }
+                        qDebug("Trigger forced");
+                    }
+                }
+                msleep(timeBase);
+                break;
+
+            case CAPTURE_VALUE1:    // Buffer is half-filled
+                msleep(timeBase);
+                break;
+
+            case CAPTURE_SUCCESS:   // Buffer is filled
+            case CAPTURE_VALUE7:    // Buffer is filled (DSO-5200X)
                 bufferMutex.lock();
                 triggerPoint = trPoint;
                 if (dsoIO.dsoGetChannelData(buffer, bufferSize) < 0)
@@ -60,58 +90,31 @@ void HantekDSOAThread::run()
                 }
                 bufferMutex.unlock();
 
-                if (!stopAcquisitionFlag)
-                {
-                    if (triggerMode == TRIGGER_MODE_SINGLE)
-                    {
-                        stopAcquisitionFlag = true;
-                    }
-                    else
-                    {
-                        if (dsoIO.dsoCaptureStart() < 0)
-                        {
-                            qDebug("Error running CaptureStart command");
-                        }
-                    }
-                    if (triggerMode == TRIGGER_MODE_AUTO || triggerMode == TRIGGER_MODE_NORMAL)
-                    {
-                        if (dsoIO.dsoTriggerEnabled() < 0)
-                        {
-                            qDebug("Error running TriggerEnabled command");
-                        }
-                    }
-                    if (triggerMode == TRIGGER_MODE_AUTO)
-                    {
-                            if (dsoIO.dsoForceTrigger() < 0)
-                            {
-                                qDebug("Error running TriggerEnabled command");
-                            }
-                    }
-                }
-        }
-        else if (rv == CAPTURE_VALUE0 || rv == CAPTURE_VALUE1)
-        {
-            qDebug("CaptureState=%i", rv);
-            if (forceCount++ >= forceCountMax)
-            {
-                forceCount = 0;
-                if (dsoIO.dsoForceTrigger() < 0)
-                {
-                    qDebug("Error running TriggerEnabled command");
-                }
-                qDebug("Trigger forced");
-/*
                 if (dsoIO.dsoCaptureStart() < 0)
                 {
                     qDebug("Error running CaptureStart command");
                 }
-
                 if (dsoIO.dsoTriggerEnabled() < 0)
                 {
                     qDebug("Error running TriggerEnabled command");
                 }
-*/
-            }
+
+                if (triggerMode == TRIGGER_MODE_AUTO)
+                {
+                        if (dsoIO.dsoForceTrigger() < 0)
+                        {
+                            qDebug("Error running TriggerEnabled command");
+                        }
+                }
+                break;
+
+            default:
+                qDebug("Unknown CaptureState=%i", captureState);
+        }
+
+        if (captureState != CAPTURE_VALUE0)
+        {
+            forceRestartCount = 0;
         }
     }
 }
@@ -162,14 +165,6 @@ void HantekDSOAThread::setTriggerMode(int triggerMode)
 int HantekDSOAThread::getTriggerMode()
 {
     return triggerMode;
-}
-
-/*!
-    \fn HantekDSOAThread::setStopAcquisitionFlag(int stopAcquisitionFlag)
- */
-void HantekDSOAThread::setStopAcquisitionFlag(int stopAcquisitionFlag)
-{
-    this->stopAcquisitionFlag = stopAcquisitionFlag;
 }
 
 /*!

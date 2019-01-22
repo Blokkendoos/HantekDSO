@@ -51,7 +51,6 @@ public:
     void setBufferSize(unsigned bufferSize);
     void setTriggerMode(int triggerMode);
     int getTriggerMode();
-    void setStopAcquisitionFlag(int stopAcquisitionFlag);
     void getCalData();
     void transform();
 
@@ -64,9 +63,8 @@ public:
     int calData;
     unsigned triggerPoint;
     int triggerMode;
-    int forceCount;
-    int forceCountMax;
-    bool stopAcquisitionFlag;
+    int forceRestartCount;
+    int forceRestartCountMax;
     bool terminateFlag;
     double fhtBuffer[MAX_CHANNELS][BUFFER_LARGE];
     double windowCoeff[BUFFER_LARGE];

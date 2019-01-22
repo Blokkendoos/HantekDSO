@@ -846,7 +846,7 @@ bcheck-am:
 
 
 #>+ 2
-KDE_DIST=hantekdso.kdevelop stamp-h.in subdirs Makefile.in configure.files config.h.in HantekDSO-0.4.tar.gz hantekdso.kdevses HantekDSO.kdevelop.pcs configure.in HantekDSO-0.5.tar.gz Makefile.cvs aclocal.m4 HantekDSO-0.3.tar.gz Doxyfile HantekDSO-0.5.1.tar.gz acinclude.m4 Makefile.am configure 
+KDE_DIST=hantekdso.kdevelop HantekDSO-0.5.2.tar.gz stamp-h.in subdirs Makefile.in configure.files config.h.in HantekDSO-0.4.tar.gz hantekdso.kdevses HantekDSO.kdevelop.pcs configure.in HantekDSO-0.5.tar.gz Makefile.cvs aclocal.m4 HantekDSO-0.3.tar.gz Doxyfile HantekDSO-0.5.1.tar.gz acinclude.m4 Makefile.am configure 
 
 #>+ 2
 docs-am:

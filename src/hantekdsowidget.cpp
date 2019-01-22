@@ -60,7 +60,7 @@ int HantekDSOWidget::startDSO()
 {
     if (dsoAThread.dsoIO.dsoInit() == 0)
     {
-        textInfo->setText(QString("DSO model %1 found").arg(dsoAThread.dsoIO.dsoGetModel(), 0, 16));
+        textInfo->setText(QString("DSO-%1 found").arg(dsoAThread.dsoIO.dsoGetModel(), 0, 16));
 
         if (dsoAThread.dsoIO.dsoGetChannelLevel(&chLevels) < 0)
         {
@@ -136,17 +136,12 @@ void HantekDSOWidget::buttonStart_clicked()
                 qDebug("Error running ForceTrigger command");
             }
         }
-        if (triggerMode != TRIGGER_MODE_SINGLE)
-        {
-            dsoAThread.setStopAcquisitionFlag(false);
-        }
     }
     qDebug("START");
 }
 
 void HantekDSOWidget::buttonStop_clicked()
 {
-    dsoAThread.setStopAcquisitionFlag(true);
     qDebug("STOP");
 }
 
@@ -437,7 +432,7 @@ void HantekDSOWidget::comboTriggerSlope_activated(int slope)
 void HantekDSOWidget::comboTriggerMode_activated(int mode)
 {
     dsoAThread.setTriggerMode(mode);
-    qDebug("TriggerMode = %i", mode);
+    qDebug("TriggerMode=%i", mode);
 }
 
 void HantekDSOWidget::timeDiv_activated(int div)

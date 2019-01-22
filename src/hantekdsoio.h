@@ -219,6 +219,7 @@ public:
     int dsoInit();
     bool dsoIsFound();
     unsigned short dsoGetModel();
+    unsigned dsoGetTimeBase();
     int dsoSetFilter(int channel1, int channel2, int trigger);
     int dsoSetTriggerAndSampleRate(int timeBase, int selectedChannel, int triggerSource, int triggerSlope, int triggerPosition, int bufferSize);
     int dsoForceTrigger();
@@ -258,6 +259,7 @@ private:
     int epOutMaxPacketLen, epInMaxPacketLen;
     QMutex dsoIOMutex;
     int timeout, attempts;
+    unsigned timeBaseMks;
 };
 
 #endif

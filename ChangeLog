@@ -1,3 +1,15 @@
+Version 0.5.3
+- Data acqusuition code revised. Bugfixes.
+
+Version 0.5.2
+- Small fix related to buffer size on DSO-5200X models.
+
+Version 0.5.1
+- Trying to support DSO-5200X models.
+
+Version 0.5
+- Small improvements in data acquisition and FHT code
+
 Version 0.4
 - Fixed error leads to segfault when activating some GUI elements while DSO not connected.
 - Fixed bug in usb bulk packets length leads to "ReadPipe (async - returning err e000404f)" on MacOS-X. Thanks to Johan Ro.

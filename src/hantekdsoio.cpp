@@ -24,7 +24,7 @@
 
 HantekDSOIO::HantekDSOIO() : deviceModel(0), usbDSOHandle(0), interfaceNumber(0),
     interfaceIsClaimed(false), extraBitsData(false), epOutMaxPacketLen(0),
-    epInMaxPacketLen(0), timeout(500), attempts(5)
+    epInMaxPacketLen(0), timeout(500), attempts(3), timeBaseMks(0)
 {
 }
 
@@ -165,13 +165,12 @@ int HantekDSOIO::dsoInit()
 }
 
 /*!
-    \fn HantekDSOIO::getDSOModel()
+    \fn HantekDSOIO::dsoIsFound()
  */
 bool HantekDSOIO::dsoIsFound()
 {
     return interfaceIsClaimed;
 }
-
 
 /*!
     \fn HantekDSOIO::getDSOModel()
@@ -179,6 +178,14 @@ bool HantekDSOIO::dsoIsFound()
 unsigned short HantekDSOIO::dsoGetModel()
 {
     return deviceModel;
+}
+
+/*!
+    \fn HantekDSOIO::dsoGetTimeBase()
+ */
+unsigned HantekDSOIO::dsoGetTimeBase()
+{
+    return timeBaseMks;
 }
 
 /*!
@@ -374,10 +381,11 @@ int HantekDSOIO::dsoSetFilter(int channel1, int channel2, int trigger)
  */
 int HantekDSOIO::dsoSetTriggerAndSampleRate(int timeBase, int selectedChannel, int triggerSource, int triggerSlope, int triggerPosition, int bufferSize)
 {
-    unsigned char timeBaseTableFastSmall[4] = {1, 2, 3, 4};
-    unsigned char timeBaseTableFastLarge[4] = {0, 0, 2, 3};
-    unsigned short timeBaseTableSlowSmall[12] = {0xFFFF, 0xFFFC, 0xFFF7, 0xFFE8, 0xFFCE, 0xFF9C, 0xFF07, 0xFE0D, 0xFC19, 0xF63D, 0xEC79, 0xD8F1};
-    unsigned short timeBaseTableSlowLarge[12] = {0xFFFF, 0x0000, 0xFFFC, 0xFFF7, 0xFFE8, 0xFFCE, 0xFF9D, 0xFF07, 0xFE0D, 0xFC19, 0xF63D, 0xEC79 };
+    unsigned char timeBaseTableFastSmall[4] = { 1, 2, 3, 4 };
+    unsigned char timeBaseTableFastLarge[4] = { 0, 0, 2, 3 };
+    unsigned short timeBaseTableSlowSmall[12] = { 0xFFFF, 0xFFFC, 0xFFF7, 0xFFE8, 0xFFCE, 0xFF9C, 0xFF07, 0xFE0D, 0xFC19, 0xF63D, 0xEC79, 0xD8F1 };
+    unsigned short timeBaseTableSlowLarge[12] = { 0xFFFF, 0x0000, 0xFFFC, 0xFFF7, 0xFFE8, 0xFFCE, 0xFF9D, 0xFF07, 0xFE0D, 0xFC19, 0xF63D, 0xEC79 };
+    unsigned timeBaseMksTable[TIME_LAST] = { 10, 20, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 40000, 100000, 200000, 400000 };
 
     tsr_byte1 tsr1;
     tsr1.bits.triggerSource = triggerSource;
@@ -581,6 +589,7 @@ int HantekDSOIO::dsoGetChannelData(void *buffer, int bufferSize)
     }
 
     int packets = bufferSize*sizeof(unsigned short)/epInMaxPacketLen;
+//    qDebug("Getting %i packets (%i bytes length), buffer len = %i bytes", packets, epInMaxPacketLen, bufferSize);
 
     for(int i=0; i<packets; i++)
     {
@@ -595,6 +604,7 @@ int HantekDSOIO::dsoGetChannelData(void *buffer, int bufferSize)
 
     if (extraBitsData)
     {
+//        qDebug("Getting extra %i packets (%i bytes length)", packets, epInMaxPacketLen);
         // TODO: use the extra bits of data
         unsigned char *tempBuffer = new unsigned char[epInMaxPacketLen];
         for(int i=0; i<packets; i++)
