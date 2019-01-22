@@ -55,14 +55,16 @@ PROGRAMS = $(bin_PROGRAMS)
 am_hantekdso_OBJECTS = fht.$(OBJEXT) glbox.$(OBJEXT) \
 	hantekdso.$(OBJEXT) hantekdsoathread.$(OBJEXT) \
 	hantekdsoio.$(OBJEXT) hantekdsowidget.$(OBJEXT) main.$(OBJEXT) \
-	sansfont.$(OBJEXT)
+	sansfont.$(OBJEXT) cursor.$(OBJEXT) timecursor.$(OBJEXT) \
+	voltagecursor.$(OBJEXT)
 #>- hantekdso_OBJECTS = $(am_hantekdso_OBJECTS)
-#>+ 8
+#>+ 9
 hantekdso_final_OBJECTS = hantekdso.all_cpp.o 
 hantekdso_nofinal_OBJECTS = fht.$(OBJEXT) glbox.$(OBJEXT) \
 	hantekdso.$(OBJEXT) hantekdsoathread.$(OBJEXT) \
 	hantekdsoio.$(OBJEXT) hantekdsowidget.$(OBJEXT) main.$(OBJEXT) \
-	sansfont.$(OBJEXT) hantekdsowidgetbase.$(OBJEXT)\
+	sansfont.$(OBJEXT) cursor.$(OBJEXT) timecursor.$(OBJEXT) \
+	voltagecursor.$(OBJEXT) hantekdsowidgetbase.$(OBJEXT)\
 glbox.moc.o 
 @KDE_USE_FINAL_FALSE@hantekdso_OBJECTS = $(hantekdso_nofinal_OBJECTS)
 @KDE_USE_FINAL_TRUE@hantekdso_OBJECTS = $(hantekdso_final_OBJECTS)
@@ -364,7 +366,7 @@ INCLUDES = $(all_includes)
 
 # these are the headers for your project
 noinst_HEADERS = fht.h glbox.h hantekdso.h hantekdsoathread.h hantekdsoio.h \
-	sansfont.h
+	sansfont.h cursor.h timecursor.h voltagecursor.h
 
 
 # let automoc handle all of the meta source files (moc)
@@ -373,10 +375,12 @@ KDE_ICON = AUTO
 
 # the application source, library search path, and link libraries
 #>- hantekdso_SOURCES = fht.cpp glbox.cpp hantekdso.cpp hantekdsoathread.cpp \
-#>- 	hantekdsoio.cpp hantekdsowidget.cpp hantekdsowidgetbase.ui main.cpp sansfont.cpp
-#>+ 2
+#>- 	hantekdsoio.cpp hantekdsowidget.cpp hantekdsowidgetbase.ui main.cpp sansfont.cpp \
+#>- 	cursor.cpp timecursor.cpp voltagecursor.cpp
+#>+ 3
 hantekdso_SOURCES=fht.cpp glbox.cpp hantekdso.cpp hantekdsoathread.cpp \
-	hantekdsoio.cpp hantekdsowidget.cpp  main.cpp sansfont.cpp hantekdsowidgetbase.cpp
+	hantekdsoio.cpp hantekdsowidget.cpp  main.cpp sansfont.cpp \
+	cursor.cpp timecursor.cpp voltagecursor.cpp hantekdsowidgetbase.cpp
 
 hantekdso_LDFLAGS = -avoid-version $(KDE_RPATH) $(all_libraries)
 hantekdso_LDADD = $(LIB_KDEUI) -lGL -lusb -lm
@@ -474,6 +478,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cursor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fht.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/glbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hantekdso.Po@am__quote@
@@ -482,6 +487,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hantekdsowidget.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sansfont.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/timecursor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/voltagecursor.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -828,11 +835,11 @@ bcheck-am:
 
 
 #>+ 11
-hantekdso.all_cpp.cpp: $(srcdir)/Makefile.in $(srcdir)/fht.cpp $(srcdir)/glbox.cpp $(srcdir)/hantekdso.cpp $(srcdir)/hantekdsoathread.cpp $(srcdir)/hantekdsoio.cpp $(srcdir)/hantekdsowidget.cpp $(srcdir)/main.cpp $(srcdir)/sansfont.cpp hantekdsowidgetbase.cpp glbox.moc.cpp  hantekdso.moc hantekdsowidgetbase.moc hantekdsowidget.moc
+hantekdso.all_cpp.cpp: $(srcdir)/Makefile.in $(srcdir)/fht.cpp $(srcdir)/glbox.cpp $(srcdir)/hantekdso.cpp $(srcdir)/hantekdsoathread.cpp $(srcdir)/hantekdsoio.cpp $(srcdir)/hantekdsowidget.cpp $(srcdir)/main.cpp $(srcdir)/sansfont.cpp $(srcdir)/cursor.cpp $(srcdir)/timecursor.cpp $(srcdir)/voltagecursor.cpp hantekdsowidgetbase.cpp glbox.moc.cpp  hantekdso.moc hantekdsowidgetbase.moc hantekdsowidget.moc
 	@echo 'creating hantekdso.all_cpp.cpp ...'; \
 	rm -f hantekdso.all_cpp.files hantekdso.all_cpp.final; \
 	echo "#define KDE_USE_FINAL 1" >> hantekdso.all_cpp.final; \
-	for file in fht.cpp glbox.cpp hantekdso.cpp hantekdsoathread.cpp hantekdsoio.cpp hantekdsowidget.cpp main.cpp sansfont.cpp hantekdsowidgetbase.cpp glbox.moc.cpp ; do \
+	for file in fht.cpp glbox.cpp hantekdso.cpp hantekdsoathread.cpp hantekdsoio.cpp hantekdsowidget.cpp main.cpp sansfont.cpp cursor.cpp timecursor.cpp voltagecursor.cpp hantekdsowidgetbase.cpp glbox.moc.cpp ; do \
 	  echo "#include \"$$file\"" >> hantekdso.all_cpp.files; \
 	  test ! -f $(srcdir)/$$file || egrep '^#pragma +implementation' $(srcdir)/$$file >> hantekdso.all_cpp.final; \
 	done; \
@@ -863,8 +870,10 @@ no-final-install:
 kde-rpo-clean:
 	-rm -f *.rpo
 
-#>+ 15
+#>+ 18
+$(srcdir)/timecursor.cpp: hantekdsowidgetbase.h 
 $(srcdir)/main.cpp: hantekdsowidgetbase.h 
+$(srcdir)/cursor.cpp: hantekdsowidgetbase.h 
 hantekdsowidget.o: hantekdsowidget.moc 
 hantekdsowidget.lo: hantekdsowidget.moc 
 $(srcdir)/hantekdsowidget.cpp: hantekdsowidgetbase.h 
@@ -874,6 +883,7 @@ nmcheck-am: nmcheck
 hantekdso.o: hantekdso.moc 
 $(srcdir)/hantekdso.cpp: hantekdsowidgetbase.h 
 $(srcdir)/hantekdsoio.cpp: hantekdsowidgetbase.h 
+$(srcdir)/voltagecursor.cpp: hantekdsowidgetbase.h 
 $(srcdir)/fht.cpp: hantekdsowidgetbase.h 
 hantekdso.lo: hantekdso.moc 
 $(srcdir)/hantekdsoathread.cpp: hantekdsowidgetbase.h 

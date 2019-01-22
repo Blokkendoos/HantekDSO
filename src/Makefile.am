@@ -3,7 +3,7 @@ INCLUDES = $(all_includes)
 
 # these are the headers for your project
 noinst_HEADERS = fht.h glbox.h hantekdso.h hantekdsoathread.h hantekdsoio.h \
-	sansfont.h
+	sansfont.h cursor.h timecursor.h voltagecursor.h
 
 # let automoc handle all of the meta source files (moc)
 METASOURCES = AUTO
@@ -23,7 +23,8 @@ bin_PROGRAMS = hantekdso
 
 # the application source, library search path, and link libraries
 hantekdso_SOURCES = fht.cpp glbox.cpp hantekdso.cpp hantekdsoathread.cpp \
-	hantekdsoio.cpp hantekdsowidget.cpp hantekdsowidgetbase.ui main.cpp sansfont.cpp
+	hantekdsoio.cpp hantekdsowidget.cpp hantekdsowidgetbase.ui main.cpp sansfont.cpp \
+	cursor.cpp timecursor.cpp voltagecursor.cpp
 hantekdso_LDFLAGS = -avoid-version $(KDE_RPATH) $(all_libraries)
 hantekdso_LDADD = $(LIB_KDEUI) -lGL -lusb -lm
 

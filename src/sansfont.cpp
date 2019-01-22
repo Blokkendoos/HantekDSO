@@ -48,17 +48,24 @@ void SansFont::init()
 // Find character description and return pointer to it
 int SansFont::findChar(QChar chr)
 {
-    int ptr = -1;
-    for (int i = 0; i < CHARNUMBER; i++)
+    // use binary search
+    int lower = 0;
+    int upper = CHARNUMBER - 1;
+    while (lower <= upper)
     {
-            if (sansFont[i].chr == chr)
-            {
-                    ptr = i;
-                    break;
-            }
-    }
+	int pivot = (upper + lower) / 2;
+	QChar pivotChr = QChar(sansFont[pivot].chr);
+	if (pivotChr == chr)
+	{
+	    return pivot;
+	}
+	if (pivotChr < chr)
+	    lower = pivot + 1;
+	else
+	    upper = pivot - 1;
+    };
 
-    return ptr;
+    return -1;
 }
 
 int SansFont::glChar(QChar chr, float scale)

@@ -23,6 +23,7 @@
 #include "hantekdsoathread.h"
 #include "fht.h"
 #include "sansfont.h"
+#include "cursor.h"
 
 #define DIVS_TIME 10.0
 #define DIVS_VOLTAGE 8.0
@@ -63,6 +64,15 @@ enum math_types
     MATHTYPE_2SUB1
 };
 
+enum cursor_types
+{
+    CURSOR_CH2 = 0,
+    CURSOR_CH1,
+    CURSOR_TIME
+};
+
+#define MAX_CURSOR (MAX_CHANNELS+1)
+
 class GLBox : public QGLWidget
 {
     Q_OBJECT
@@ -80,19 +90,32 @@ public:
     void setDigitalPhosphor(int state);
     void setTimeDiv(double div);
     void setTimeShift(double shift);
+    void setCursors(Cursor *cur1, Cursor *cur2, Cursor *cur3);
+    
+    static GLfloat getRed(channels channel);
+    static GLfloat getGreen(channels channel);
+    static GLfloat getBlue(channels channel);
+    static GLfloat getAlpha(channels channel);
+    
+    static GLfloat getBorder();
 
 protected:
     void initializeGL();
     void paintGL();
     void resizeGL(int w, int h);
     GLuint makeObject(int object);
+    
+    void mouseMoveEvent(QMouseEvent * e);
+    void mousePressEvent(QMouseEvent * e);
 
 private:
     HantekDSOAThread* aThread;
     GLuint gl_grid, gl_channels;
     SansFont font;
     static const GLfloat chColor[MAX_CHANNELS+1][4];
+    static const GLfloat border;
     bool chActive[MAX_CHANNELS];
+    Cursor* cursors[MAX_CURSOR];
     int digitalPhosphor;
     int dpIndex;
     int viewMode;
@@ -100,6 +123,7 @@ private:
     int interpolationMode;
     double timeDiv;
     double timeShift;
+    Cursor *cursorToMove;
 };
 
 

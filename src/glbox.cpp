@@ -28,11 +28,19 @@ const GLfloat GLBox::chColor[MAX_CHANNELS+1][4] = {
     {0.0, 1.0, 0.0, 1.0}  // CHM Color
 };
 
+const GLfloat GLBox::border = 0.1;
+
 GLBox::GLBox(QWidget* parent, const char* name) : QGLWidget(parent, name),
     aThread(0), gl_grid(0), digitalPhosphor(0), dpIndex(0), viewMode(VIEWMODE_XT),
     mathType(MATHTYPE_OFF), chMOffset(0), interpolationMode(INTERPOLATION_LINEAR),
-    timeDiv(1), timeShift(0)
+    timeDiv(1), timeShift(0), cursorToMove(0)
 {
+    setMouseTracking(false);
+    
+    for (int i = 0; i < MAX_CURSOR; ++i)
+    {
+	cursors[i] = 0;
+    }
 }
 
 GLBox::~GLBox()
@@ -63,7 +71,6 @@ void GLBox::initializeGL()
     gl_grid = makeObject(GLOBJ_GRID);
     gl_channels = glGenLists(DP_DEPTH*(MAX_CHANNELS+1));
     glShadeModel(GL_SMOOTH/*GL_FLAT*/);
-    glLineStipple (1, 0x00FF);
 
     font.init();
 }
@@ -165,7 +172,7 @@ void GLBox::paintGL()
                             int index = (dpIndex + i) % DP_DEPTH;
                             glCallList(gl_channels + index*MAX_CHANNELS + t);
                         }
-                    }
+                   }
                 }
                 if (mathType != MATHTYPE_OFF)
                 {
@@ -196,11 +203,21 @@ void GLBox::paintGL()
                 glPopMatrix();
 */
                 glDisable(GL_LINE_SMOOTH);
-                glCallList(gl_grid);    // Draw grid
+		
+		glLineStipple (1, 0x3333);
+		for (int i = 0; i < MAX_CURSOR; ++i)
+		{
+		    if (cursors[i] != 0)
+			cursors[i]->paintCursor(font);
+		}
+		
+		glLineStipple (1, 0x00FF);
+		glCallList(gl_grid);    // Draw grid
                 break;
 
             case VIEWMODE_XY:
                 glDisable(GL_LINE_SMOOTH);
+		glLineStipple (1, 0x00FF);
                 glCallList(gl_grid);
                 break;
 
@@ -248,6 +265,7 @@ void GLBox::paintGL()
                 }
                 glPopMatrix();
                 glDisable(GL_LINE_SMOOTH);
+		glLineStipple (1, 0x00FF);
                 glCallList(gl_grid);    // Draw grid
                 break;
         }
@@ -260,13 +278,20 @@ void GLBox::resizeGL(int w, int h)
     glViewport(0, 0, (GLint)w, (GLint)h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-DIVS_TIME/2 - 0.1, DIVS_TIME/2 + 0.1, -DIVS_VOLTAGE/2 - 0.1, DIVS_VOLTAGE/2 + 0.1, -1.0, 1.0);
+    glOrtho(-DIVS_TIME/2 - border, DIVS_TIME/2 + border, -DIVS_VOLTAGE/2 - border, DIVS_VOLTAGE/2 + border, -1.0, 1.0);
     glMatrixMode(GL_MODELVIEW);
 }
 
 void GLBox::setAThread(HantekDSOAThread* pAThread)
 {
     aThread = pAThread;
+}
+
+void GLBox::setCursors(Cursor* cur1, Cursor* cur2, Cursor* cur3)
+{
+    cursors[0] = cur1;
+    cursors[1] = cur2;
+    cursors[2] = cur3;
 }
 
 void GLBox::setActiveChannels(bool ch1Active, bool ch2Active)
@@ -360,6 +385,34 @@ GLuint GLBox::makeObject(int object)
     return list;
 }
 
+void GLBox::mouseMoveEvent(QMouseEvent *e)
+{
+    if (cursorToMove == 0)
+	return;
+    // qDebug("Mouse moved position x=%i, y=%i", e->x(), e->y());
+    
+    cursorToMove->setPosition(e, width(), height());
+    updateGL();
+}
+
+void GLBox::mousePressEvent(QMouseEvent *e)
+{
+    cursorToMove = 0;
+    
+    for (int i = 0; i < MAX_CURSOR; ++i)
+    {
+	if (cursors[i] == 0 || !cursors[i]->isChecked())
+	    continue;
+	
+	if (cursors[i]->isSelected(e, width(), height()))
+	{
+	    cursorToMove = cursors[i];
+	    break;
+	}
+    }
+    // qDebug("Mouse pressed position x=%i, y=%i, move cursor %i", e->x(), e->y(), cursorToMove);
+}
+
 /*!
     \fn GLBox::setTimeDiv(double div)
  */
@@ -377,3 +430,29 @@ void GLBox::setTimeShift(double shift)
     timeShift = shift;
     updateGL();
 }
+
+GLfloat GLBox::getRed(channels channel)
+{
+    return chColor[channel][0];
+}
+
+GLfloat GLBox::getGreen(channels channel)
+{
+    return chColor[channel][1];
+}
+
+GLfloat GLBox::getBlue(channels channel)
+{
+    return chColor[channel][2];
+}
+
+GLfloat GLBox::getAlpha(channels channel)
+{
+    return chColor[channel][3];
+}
+
+GLfloat GLBox::getBorder()
+{
+    return border;
+}
+

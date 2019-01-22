@@ -23,16 +23,22 @@
 #include <klocale.h>
 
 #include "hantekdso.h"
-#include "hantekdsowidget.h"
 
 HantekDSO::HantekDSO()
     : KMainWindow( 0, "HantekDSO" )
 {
-    setCentralWidget( new HantekDSOWidget( this ) );
+    widget = new HantekDSOWidget( this );
+    setCentralWidget( widget );
 }
 
 HantekDSO::~HantekDSO()
 {
+}
+
+bool HantekDSO::queryClose()
+{
+    widget->saveSetting();
+    return true;
 }
 
 #include "hantekdso.moc"

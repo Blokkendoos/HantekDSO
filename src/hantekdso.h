@@ -28,6 +28,8 @@
 
 #include <kmainwindow.h>
 
+#include "hantekdsowidget.h"
+
 /**
  * @short Application Main Window
  * @author Oleg Khudyakov <prcoder@potrebitel.ru>
@@ -36,16 +38,22 @@
 class HantekDSO : public KMainWindow
 {
     Q_OBJECT
-public:
-    /**
-     * Default Constructor
-     */
-    HantekDSO();
+    public:
+        /**
+         * Default Constructor
+         */
+        HantekDSO();
 
-    /**
-     * Default Destructor
-     */
-    virtual ~HantekDSO();
+        /**
+         * Default Destructor
+         */
+        virtual ~HantekDSO();
+
+    protected:
+        virtual bool queryClose();
+        
+    private:
+        HantekDSOWidget *widget;
 };
 
 #endif // _HANTEKDSO_H_

@@ -40,6 +40,8 @@ public:
     HantekDSOWidget(QWidget* parent = 0, const char* name = 0, WFlags fl = 0 );
     ~HantekDSOWidget();
     /*$PUBLIC_FUNCTIONS$*/
+    
+    void saveSetting();
 
 protected:
     /*$PROTECTED_FUNCTIONS$*/
@@ -52,12 +54,15 @@ protected:
     int selectedChannel;
     int ch1Active, ch2Active;
     int ch1Voltage, ch2Voltage;
+    int ch1Atten, ch2Atten;
     int ch1Coupling, ch2Coupling;
     int ch1Offset, ch2Offset, triggerOffset;
+    int prevCh1SliderValue, prevCh2SliderValue;
     int ch1Filter, ch2Filter, triggerFilter;
     int triggerSource, triggerSlope, triggerPosition;
     int calData;
     channel_levels chLevels;
+    static const double voltagePerDiv[];
 
 public slots:
     /*$PUBLIC_SLOTS$*/
@@ -68,6 +73,8 @@ public slots:
     virtual void comboCoupling2_activated(int);
     virtual void comboVoltage2_activated(int);
     virtual void comboVoltage1_activated(int);
+    virtual void comboAtten1_activated(int);
+    virtual void comboAtten2_activated(int);
     virtual void comboTimeBase_activated(int);
     virtual void comboTriggerMode_activated(int);
     virtual void sliderTriggerPos_valueChanged(int);
@@ -88,10 +95,16 @@ public slots:
     virtual void checkTrigFilter_stateChanged(int);
     virtual void checkCh2Filter_stateChanged(int);
     virtual void checkCh1Filter_stateChanged(int);
+    virtual void timeCursor_stateChanged( int state );
+    virtual void cursorCh1_stateChanged( int state );
+    virtual void cursorCh2_stateChanged( int state );
 
 protected slots:
     /*$PROTECTED_SLOTS$*/
     virtual int startDSO();
+    
+private:
+    void readSetting();
 };
 
 #endif
