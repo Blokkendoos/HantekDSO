@@ -254,6 +254,7 @@ private:
     struct usb_dev_handle *usbDSOHandle;
     int interfaceNumber;
     bool interfaceIsClaimed;
+    bool extraBitsData;
     int epOutMaxPacketLen, epInMaxPacketLen;
     QMutex dsoIOMutex;
     int timeout, attempts;

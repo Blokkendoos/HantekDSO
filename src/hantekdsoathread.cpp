@@ -33,19 +33,6 @@ HantekDSOAThread::~HantekDSOAThread()
 }
 
 /*!
-    \fn HantekDSOAThread::calibrateBuffer()
- */
-/*
-void HantekDSOAThread::calibrateBuffer()
-{
-    for (unsigned int i = 0; i < bufferSize; i++)
-    {
-        buffer[i][0] -= calData/2 - 1;
-    }
-}
-*/
-
-/*!
     \fn HantekDSOAThread::run()
  */
 void HantekDSOAThread::run()

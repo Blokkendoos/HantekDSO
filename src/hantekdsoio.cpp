@@ -23,7 +23,8 @@
 #include <string.h>
 
 HantekDSOIO::HantekDSOIO() : deviceModel(0), usbDSOHandle(0), interfaceNumber(0),
-    interfaceIsClaimed(false), epOutMaxPacketLen(0), epInMaxPacketLen(0), timeout(500), attempts(5)
+    interfaceIsClaimed(false), extraBitsData(false), epOutMaxPacketLen(0),
+    epInMaxPacketLen(0), timeout(500), attempts(5)
 {
 }
 
@@ -86,6 +87,12 @@ int HantekDSOIO::dsoInit()
         dsoIOMutex.unlock();
         qDebug("Hantek DSO not found");
         return -1;
+    }
+
+    if ((deviceModel == DSO_5200) || (deviceModel == DSO_5200A))
+    {
+        extraBitsData = true;
+        qDebug("Using a 9-bita data model");
     }
 
     usbDSOHandle = ::usb_open(usbDSO);
@@ -580,10 +587,27 @@ int HantekDSOIO::dsoGetChannelData(void *buffer, int bufferSize)
         rv = readBulk((unsigned char*)buffer + i*epInMaxPacketLen, epInMaxPacketLen);
         if (rv < 0)
         {
-        qDebug("In function %s", __FUNCTION__);
+            qDebug("In function %s", __FUNCTION__);
             dsoIOMutex.unlock();
             return rv;
         }
+    }
+
+    if (extraBitsData)
+    {
+        // TODO: use the extra bits of data
+        unsigned char *tempBuffer = new unsigned char[epInMaxPacketLen];
+        for(int i=0; i<packets; i++)
+        {
+            rv = readBulk((unsigned char*)buffer + i*epInMaxPacketLen, epInMaxPacketLen);
+            if (rv < 0)
+            {
+                qDebug("In function %s", __FUNCTION__);
+                dsoIOMutex.unlock();
+                return rv;
+            }
+        }
+        delete[] tempBuffer;
     }
 
     dsoIOMutex.unlock();
