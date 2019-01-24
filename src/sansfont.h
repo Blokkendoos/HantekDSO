@@ -19,7 +19,7 @@
  ***************************************************************************/
 #ifndef SANSFONT_H
 #define SANSFONT_H
-#include <qgl.h>
+#include <Qt/qgl.h>
 #include <qstring.h>
 
 #define CHARNUMBER 175

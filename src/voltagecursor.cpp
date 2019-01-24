@@ -27,8 +27,15 @@
 */
 
 #include "voltagecursor.h"
+//Added by qt3to4:
+#include <QMouseEvent>
 
 VoltageCursor::VoltageCursor(QWidget* parent, const char* name): Cursor(parent, name),
+    chOffset(0.0), chDiv(0.0), chActive(false), channel(CHANNEL_CH1)
+{
+}
+
+VoltageCursor::VoltageCursor(QWidget* parent): Cursor(parent),
     chOffset(0.0), chDiv(0.0), chActive(false), channel(CHANNEL_CH1)
 {
 }

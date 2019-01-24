@@ -1,16 +1,21 @@
-HantekDSO is a USB-oscilloscope software for
-Hantek/Novatek/Voltcraft/Darkwire/Protek/Acetech/e.t.c
-DSO-2090/2150/2250/5200A/e.t.c. oscilloscopes.
+General remark:
+This project is a fork from SourceForge HantekDSO-0.5.4:
+https://sourceforge.net/projects/hantekdso
 
-It based on libusb and QT/OpenGL libraries. Project includes a firmware
+Description:
+HantekDSO is a USB-oscilloscope software for
+Hantek/Novatek/Voltcraft/Darkwire/Protek/Acetech/etc
+DSO2090/2150/2250/5200A/etc. oscilloscopes.
+
+It is based on libusb and QT/OpenGL libraries. Project includes a firmware
 extraction utility and udev rules file for loading firmware under Linux/Unix.
 
-DSO software depends on: 
+HantekDSO software depends on: 
 - libusb (library to enable user space application programs to communicate with USB devices)
-- Qt3 (cross-platform application and UI framework)
+- Qt4 (cross-platform application and UI framework)
 - mesa-libGL (open-source implementation of the OpenGL specification)
 To successfully build a project you need to have all development packages installed
-(libusb-devel, qt-devel (version 3.X), mesa-libGL-devel).
+(libusb-devel, qt-devel (version 4.X), mesa-libGL-devel).
 
 Firmware extraction utility depends on:
 - libbfd (mechanism for the portable manipulation of object files in a variety of formats)
@@ -22,15 +27,11 @@ in to the oscilloscope.
 
 
 How to BUILD:
-aclocal
-autoheader
-automake
-autoconf
-
-./configure
+mkdir build
+cd build
+cmake ..
 make
 make install
-
 
 How to INSTALL:
 

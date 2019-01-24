@@ -1,3 +1,6 @@
+Version 0.5.4
+- Try to implement DSO-5200A support.
+
 Version 0.5.3
 - Data acqusuition code revised. Bugfixes.
 

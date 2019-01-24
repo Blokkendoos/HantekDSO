@@ -24,29 +24,33 @@
 #include <kaboutdata.h>
 #include <kcmdlineargs.h>
 #include <klocale.h>
+#include <klocalizedstring.h>
 
-static const char description[] =
-    I18N_NOOP("A KDE KPart Application");
+KLocalizedString description = ki18n("A KDE KPart Application");
+KLocalizedString copyright = ki18n("(C) 2008-2009 Oleg Khudyakov");
 
 static const char version[] = "0.1";
 
-static KCmdLineOptions options[] =
-{
-//    { "+[URL]", I18N_NOOP( "Document to open" ), 0 },
-    KCmdLineLastOption
-};
+//static KCmdLineOptions *options = new KCmdLineOptions();
+static KCmdLineOptions options;
 
 int main(int argc, char **argv)
 {
-    KAboutData about("hantekdso", I18N_NOOP("HantekDSO"), version, description,
-                     KAboutData::License_GPL, "(C) 2008-2009 Oleg Khudyakov", 0, 0, "prcoder@gmail.com");
-    about.addAuthor( "Oleg Khudyakov", 0, "prcoder@gmail.com" );
-    KCmdLineArgs::init(argc, argv, &about);
+    KAboutData *about = new KAboutData( "hantekdso"
+                                      , NULL
+                                      , ki18n("HantekDSO")
+                                      , version
+                                      , description
+                                      , KAboutData::License_GPL
+                                      , copyright
+                                      , ki18n(""), 0, "prcoder@gmail.com" );
+    about->addAuthor( ki18n("Oleg Khudyakov"), ki18n(""), "prcoder@gmail.com" );
+    KCmdLineArgs::init(argc, argv, about);
     KCmdLineArgs::addCmdLineOptions( options );
     KApplication app;
     HantekDSO *mainWin = 0;
 
-    if (app.isRestored())
+    if (app.isSessionRestored())
     {
         RESTORE(HantekDSO);
     }

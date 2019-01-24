@@ -30,11 +30,14 @@
 #define TIMECURSOR_H
 
 #include <cursor.h>
+//Added by qt3to4:
+#include <QMouseEvent>
 
 class TimeCursor : public Cursor
 {
 public:
     TimeCursor(QWidget* parent, const char* name);
+    TimeCursor(QWidget* parent);
     virtual ~TimeCursor();
     
     virtual void setPosition(QMouseEvent *e, int width, int height);

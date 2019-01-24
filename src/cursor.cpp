@@ -33,6 +33,11 @@ Cursor::Cursor(QWidget* parent, const char* name): QCheckBox(parent),
 {
 }
 
+Cursor::Cursor(QWidget* parent): QCheckBox(parent),
+    pos(0.0)
+{
+}
+
 Cursor::~Cursor()
 {
 }

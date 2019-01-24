@@ -17,8 +17,9 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#include <kapp.h>
+#include <kapplication.h>
 #include <kconfig.h>
+#include <kconfiggroup.h>
 #include <qlabel.h>
 #include <qslider.h>
 #include <qscrollbar.h>
@@ -34,8 +35,8 @@ const double HantekDSOWidget::voltagePerDiv[] = {
 	5.0, 2.0, 1.0, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01
 };
 
-HantekDSOWidget::HantekDSOWidget(QWidget* parent, const char* name, WFlags fl)
-        : HantekDSOWidgetBase(parent,name,fl), timeBase(TIME_1ms),
+HantekDSOWidget::HantekDSOWidget(QWidget* parent, const char* name, Qt::WFlags fl)
+        : HantekDSOWidgetBase(parent, name, fl), timeBase(TIME_1ms),
           selectedChannel(SELECT_CH1CH2), ch1Active(1), ch2Active(1),
           ch1Voltage(VOLTAGE_5V), ch2Voltage(VOLTAGE_5V),
           ch1Atten(0), ch2Atten(0),
@@ -574,105 +575,100 @@ void HantekDSOWidget::cursorCh2_stateChanged(int cursor)
 
 void HantekDSOWidget::saveSetting()
 {
-    KConfig *config = kapp->config();
-    
-    config->setGroup( "Setting" );
+    KConfigGroup config = KGlobal::config()->group("Setting");
     
     // save trigger / time settings
-    config->writeEntry( "timeBase", comboTimeBase->currentItem() );
-    config->writeEntry( "timeDiv", timeDiv->currentItem() );
-    config->writeEntry( "triggerSource", comboTriggerSource->currentItem() );
-    config->writeEntry( "triggerSlope", comboTriggerSlope->currentItem() );
-    config->writeEntry( "triggerMode", comboTriggerMode->currentItem() );
-    config->writeEntry( "triggerFilter", checkTrigFilter->isChecked() );
+    config.writeEntry( "timeBase", comboTimeBase->currentItem() );
+    config.writeEntry( "timeDiv", timeDiv->currentItem() );
+    config.writeEntry( "triggerSource", comboTriggerSource->currentItem() );
+    config.writeEntry( "triggerSlope", comboTriggerSlope->currentItem() );
+    config.writeEntry( "triggerMode", comboTriggerMode->currentItem() );
+    config.writeEntry( "triggerFilter", checkTrigFilter->isChecked() );
 
     // channel 1 settings
-    config->writeEntry( "ch1Attenuation", comboAtten1->currentItem() );
-    config->writeEntry( "ch1Voltage", comboVoltage1->currentItem() );
-    config->writeEntry( "ch1Coupling", comboCoupling1->currentItem() );
-    config->writeEntry( "ch1Filter", checkCh1Filter->isChecked() );
+    config.writeEntry( "ch1Attenuation", comboAtten1->currentItem() );
+    config.writeEntry( "ch1Voltage", comboVoltage1->currentItem() );
+    config.writeEntry( "ch1Coupling", comboCoupling1->currentItem() );
+    config.writeEntry( "ch1Filter", checkCh1Filter->isChecked() );
     
     // channel 2 settings
-    config->writeEntry( "ch2Attenuation", comboAtten2->currentItem() );
-    config->writeEntry( "ch2Voltage", comboVoltage2->currentItem() );
-    config->writeEntry( "ch2Coupling", comboCoupling2->currentItem() );
-    config->writeEntry( "ch2Filter", checkCh2Filter->isChecked() );
+    config.writeEntry( "ch2Attenuation", comboAtten2->currentItem() );
+    config.writeEntry( "ch2Voltage", comboVoltage2->currentItem() );
+    config.writeEntry( "ch2Coupling", comboCoupling2->currentItem() );
+    config.writeEntry( "ch2Filter", checkCh2Filter->isChecked() );
     
     // math channel settings
-    config->writeEntry( "mathType", comboMathType->currentItem() );
+    config.writeEntry( "mathType", comboMathType->currentItem() );
     
     // display frame settings
-    config->writeEntry( "viewMode", comboViewMode->currentItem() );
-    config->writeEntry( "displayInterpolation", comboDisplayInterpolation->currentItem() );
-    config->writeEntry( "digitalPhosphor", checkDigitalPhosphor->isChecked() );
-    config->writeEntry( "digitalSound", checkDSound->isChecked() );
+    config.writeEntry( "viewMode", comboViewMode->currentItem() );
+    config.writeEntry( "displayInterpolation", comboDisplayInterpolation->currentItem() );
+    config.writeEntry( "digitalPhosphor", checkDigitalPhosphor->isChecked() );
+    config.writeEntry( "digitalSound", checkDSound->isChecked() );
     
     // slider settings
-    config->writeEntry( "ch1SliderValue", sliderCh1->value() );
-    config->writeEntry( "ch2SliderValue", sliderCh2->value() );
-    config->writeEntry( "triggerSliderPosition", sliderTriggerPos->value() );
-    config->writeEntry( "triggerSliderValue", sliderTrigger->value() );
-    config->writeEntry( "mathSliderValue", sliderChM->value() );
+    config.writeEntry( "ch1SliderValue", sliderCh1->value() );
+    config.writeEntry( "ch2SliderValue", sliderCh2->value() );
+    config.writeEntry( "triggerSliderPosition", sliderTriggerPos->value() );
+    config.writeEntry( "triggerSliderValue", sliderTrigger->value() );
+    config.writeEntry( "mathSliderValue", sliderChM->value() );
     
-    config->sync();
+    config.sync();
 }
 
 void HantekDSOWidget::readSetting()
 {
-    KConfig *config = kapp->config();
+    KConfigGroup config = KGlobal::config()->group("Setting");
     
-    config->setGroup( "Setting" );
-    
-    comboTimeBase->setCurrentItem( config->readNumEntry( "timeBase", 6 ) );
+    comboTimeBase->setCurrentItem( config.readEntry( "timeBase", 6 ) );
     comboTimeBase_activated( comboTimeBase->currentItem() );
-    timeDiv->setCurrentItem( config->readNumEntry( "timeDiv", 0 ) );
+    timeDiv->setCurrentItem( config.readEntry( "timeDiv", 0 ) );
     timeDiv_activated( timeDiv->currentItem() );
-    comboTriggerSource->setCurrentItem( config->readNumEntry( "triggerSource", 1 ) );
+    comboTriggerSource->setCurrentItem( config.readEntry( "triggerSource", 1 ) );
     comboTriggerSource_activated( comboTriggerSource->currentItem() );
-    comboTriggerSlope->setCurrentItem( config->readNumEntry( "triggerSlope", 0 ) );
+    comboTriggerSlope->setCurrentItem( config.readEntry( "triggerSlope", 0 ) );
     comboTriggerSlope_activated( comboTriggerSlope->currentItem() );
-    comboTriggerMode->setCurrentItem( config->readNumEntry( "triggerMode", 1 ) );
+    comboTriggerMode->setCurrentItem( config.readEntry( "triggerMode", 1 ) );
     comboTriggerMode_activated( comboTriggerMode->currentItem() );
-    checkTrigFilter->setChecked( config->readBoolEntry( "triggerFilter", false ) );
+    checkTrigFilter->setChecked( config.readEntry( "triggerFilter", false ) );
     checkTrigFilter_stateChanged( checkTrigFilter->isChecked() );
     
-    comboAtten1->setCurrentItem( config->readNumEntry( "ch1Attenuation", 0 ) );
+    comboAtten1->setCurrentItem( config.readEntry( "ch1Attenuation", 0 ) );
     comboAtten1_activated( comboAtten1->currentItem() );
-    comboVoltage1->setCurrentItem( config->readNumEntry( "ch1Voltage", 0 ) );
+    comboVoltage1->setCurrentItem( config.readEntry( "ch1Voltage", 0 ) );
     comboVoltage1_activated( comboVoltage1->currentItem() );
-    comboCoupling1->setCurrentItem( config->readNumEntry( "ch1Coupling", 0 ) );
+    comboCoupling1->setCurrentItem( config.readEntry( "ch1Coupling", 0 ) );
     comboCoupling1_activated( comboCoupling1->currentItem() );
-    checkCh1Filter->setChecked( config->readBoolEntry( "ch1Filter", false ) );
+    checkCh1Filter->setChecked( config.readEntry( "ch1Filter", false ) );
     checkCh1Filter_stateChanged( checkCh1Filter->isChecked() );
     
-    comboAtten2->setCurrentItem( config->readNumEntry( "ch2Attenuation", 0 ) );
+    comboAtten2->setCurrentItem( config.readEntry( "ch2Attenuation", 0 ) );
     comboAtten2_activated( comboAtten2->currentItem() );
-    comboVoltage2->setCurrentItem( config->readNumEntry( "ch2Voltage", 0 ) );
+    comboVoltage2->setCurrentItem( config.readEntry( "ch2Voltage", 0 ) );
     comboVoltage2_activated( comboVoltage2->currentItem() );
-    comboCoupling2->setCurrentItem( config->readNumEntry( "ch2Coupling", 0 ) );
+    comboCoupling2->setCurrentItem( config.readEntry( "ch2Coupling", 0 ) );
     comboCoupling2_activated( comboCoupling2->currentItem() );
-    checkCh2Filter->setChecked( config->readBoolEntry( "ch2Filter", false ) );
+    checkCh2Filter->setChecked( config.readEntry( "ch2Filter", false ) );
     checkCh2Filter_stateChanged( checkCh2Filter->isChecked() );
     
-    comboMathType->setCurrentItem( config->readNumEntry( "mathType", 0 ) );
+    comboMathType->setCurrentItem( config.readEntry( "mathType", 0 ) );
     comboMathType_activated( comboMathType->currentItem() );
 
-    comboViewMode->setCurrentItem( config->readNumEntry( "viewMode", 0 ) );
+    comboViewMode->setCurrentItem( config.readEntry( "viewMode", 0 ) );
     comboViewMode_activated( comboViewMode->currentItem() );
-    comboDisplayInterpolation->setCurrentItem( config->readNumEntry( "displayInterpolation", 0 ) );
+    comboDisplayInterpolation->setCurrentItem( config.readEntry( "displayInterpolation", 0 ) );
     comboDisplayInterpolation_activated( comboDisplayInterpolation->currentItem() );
-    checkDigitalPhosphor->setChecked( config->readBoolEntry( "digitalPhosphor", false ) );
+    checkDigitalPhosphor->setChecked( config.readEntry( "digitalPhosphor", false ) );
     checkDigitalPhosphor_stateChanged( checkDigitalPhosphor->isChecked() );
-    checkDSound->setChecked( config->readBoolEntry( "digitalSound", false ) );
+    checkDSound->setChecked( config.readEntry( "digitalSound", false ) );
     checkDSound_stateChanged( checkDSound->isChecked() );
 
-    sliderCh1->setValue( config->readNumEntry( "ch1SliderValue", 400 ) );
-    sliderCh2->setValue( config->readNumEntry( "ch2SliderValue", 400 ) );
-    sliderTriggerPos->setValue( config->readNumEntry( "triggerSliderPosition", 10239 ) );
-    sliderTrigger->setValue( config->readNumEntry( "triggerSliderValue", 400 ) );
-    sliderChM->setValue( config->readNumEntry( "mathSliderValue", 400 ) );
+    sliderCh1->setValue( config.readEntry( "ch1SliderValue", 400 ) );
+    sliderCh2->setValue( config.readEntry( "ch2SliderValue", 400 ) );
+    sliderTriggerPos->setValue( config.readEntry( "triggerSliderPosition", 10239 ) );
+    sliderTrigger->setValue( config.readEntry( "triggerSliderValue", 400 ) );
+    sliderChM->setValue( config.readEntry( "mathSliderValue", 400 ) );
 }
 
 
 #include "hantekdsowidget.moc"
-

@@ -21,6 +21,8 @@
 #include "hantekdsoathread.h"
 #include "fht.h"
 #include <math.h>
+//Added by qt3to4:
+#include <QMouseEvent>
 
 const GLfloat GLBox::chColor[MAX_CHANNELS+1][4] = {
     {0.0, 1.0, 1.0, 1.0}, // CH2 Color
@@ -37,6 +39,19 @@ GLBox::GLBox(QWidget* parent, const char* name) : QGLWidget(parent, name),
 {
     setMouseTracking(false);
     
+    for (int i = 0; i < MAX_CURSOR; ++i)
+    {
+	cursors[i] = 0;
+    }
+}
+
+GLBox::GLBox(QWidget* parent) : QGLWidget(parent),
+    aThread(0), gl_grid(0), digitalPhosphor(0), dpIndex(0), viewMode(VIEWMODE_XT),
+    mathType(MATHTYPE_OFF), chMOffset(0), interpolationMode(INTERPOLATION_LINEAR),
+    timeDiv(1), timeShift(0), cursorToMove(0)
+{
+    setMouseTracking(false);
+
     for (int i = 0; i < MAX_CURSOR; ++i)
     {
 	cursors[i] = 0;
@@ -67,7 +82,7 @@ void GLBox::initializeGL()
 //    glEnable(GL_POINT_SMOOTH);
     glPointSize(1);
 
-    qglClearColor(black);
+    qglClearColor(Qt::black);
     gl_grid = makeObject(GLOBJ_GRID);
     gl_channels = glGenLists(DP_DEPTH*(MAX_CHANNELS+1));
     glShadeModel(GL_SMOOTH/*GL_FLAT*/);

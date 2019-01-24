@@ -25,10 +25,11 @@
 #include "hantekdso.h"
 
 HantekDSO::HantekDSO()
-    : KMainWindow( 0, "HantekDSO" )
+    : KMainWindow( 0, KDE_DEFAULT_WINDOWFLAGS )
 {
     widget = new HantekDSOWidget( this );
     setCentralWidget( widget );
+    setWindowTitle( "HantekDSO" );
 }
 
 HantekDSO::~HantekDSO()

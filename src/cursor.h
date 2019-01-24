@@ -30,13 +30,16 @@
 #define CURSOR_H
 
 #include <qcheckbox.h>
-#include <qgl.h>
+#include <Qt/qgl.h>
+//Added by qt3to4:
+#include <QMouseEvent>
 #include "sansfont.h"
 
 class Cursor : public QCheckBox
 {
 public:
     Cursor(QWidget* parent, const char* name);
+    Cursor(QWidget* parent);
     virtual ~Cursor();
     
     virtual void setPosition(QMouseEvent *e, int width, int height) = 0;

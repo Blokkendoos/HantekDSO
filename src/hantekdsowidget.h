@@ -37,7 +37,7 @@ class HantekDSOWidget : public HantekDSOWidgetBase
     Q_OBJECT
 
 public:
-    HantekDSOWidget(QWidget* parent = 0, const char* name = 0, WFlags fl = 0 );
+    HantekDSOWidget(QWidget* parent = 0, const char* name = 0, Qt::WFlags fl = 0 );
     ~HantekDSOWidget();
     /*$PUBLIC_FUNCTIONS$*/
     

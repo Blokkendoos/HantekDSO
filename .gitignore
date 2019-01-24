@@ -9,3 +9,8 @@ Makefile
 # HantekDSO build files
 build/
 
+# Qt3 to Qt4 conversion log
+src/portinglog.txt
+
+# NetBeans
+nbproject/

@@ -28,8 +28,15 @@
 
 #include "timecursor.h"
 #include "glbox.h"
+//Added by qt3to4:
+#include <QMouseEvent>
 
 TimeCursor::TimeCursor(QWidget* parent, const char* name): Cursor(parent, name),
+    timeDiv(0.0), timeShift(0.0), timeBase(0.0)
+{
+}
+
+TimeCursor::TimeCursor(QWidget* parent): Cursor(parent),
     timeDiv(0.0), timeShift(0.0), timeBase(0.0)
 {
 }

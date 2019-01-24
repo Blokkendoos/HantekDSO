@@ -31,12 +31,15 @@
 
 #include <cursor.h>
 #include "glbox.h"
+//Added by qt3to4:
+#include <QMouseEvent>
 
 
 class VoltageCursor : public Cursor
 {
 public:
     VoltageCursor(QWidget* parent, const char* name);
+    VoltageCursor(QWidget* parent);
     virtual ~VoltageCursor();
     
     virtual void setPosition(QMouseEvent *e, int width, int height);

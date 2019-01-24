@@ -19,7 +19,9 @@
  ***************************************************************************/
 #ifndef _GLBOX_H_
 #define _GLBOX_H_
-#include <qgl.h>
+#include <Qt/qgl.h>
+//Added by qt3to4:
+#include <QMouseEvent>
 #include "hantekdsoathread.h"
 #include "fht.h"
 #include "sansfont.h"
@@ -78,6 +80,7 @@ class GLBox : public QGLWidget
     Q_OBJECT
 public:
     GLBox(QWidget* parent, const char* name);
+    GLBox(QWidget* parent);
     ~GLBox();
 
 public:
