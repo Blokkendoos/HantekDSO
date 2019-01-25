@@ -2,8 +2,9 @@ cmake_minimum_required( VERSION 2.6 )
 
 project( HantekDSO )
 
-set( hantekdso_source_DIR "${PROJECT_SOURCE_DIR}/src" )
-set( hantekdso_include_DIR "${hantekdso_source_DIR}" )
+set( HANTEKDSO_BUILD_DIR "${PROJECT_SOURCE_DIR}/build/src" )
+set( HANTEKDSO_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src" )
+include_directories( ${HANTEKDSO_BUILD_DIR} ${HANTEKDSO_SOURCE_DIR} )
 
 find_package( PkgConfig REQUIRED )
 
