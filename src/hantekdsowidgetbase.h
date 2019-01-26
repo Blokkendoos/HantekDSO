@@ -205,6 +205,7 @@ public:
         sliderCh2->setValue(400);
         sliderCh2->setOrientation(Qt::Vertical);
         sliderCh2->setTickPosition(QSlider::TicksBelow);
+        sliderCh2->setAttribute(Qt::WA_LayoutUsesWidgetRect);
 
         hboxLayout2->addWidget(sliderCh2);
 
@@ -269,6 +270,7 @@ public:
         sliderCh1->setValue(400);
         sliderCh1->setOrientation(Qt::Vertical);
         sliderCh1->setTickPosition(QSlider::TicksBelow);
+        sliderCh1->setAttribute(Qt::WA_LayoutUsesWidgetRect);
 
         hboxLayout2->addWidget(sliderCh1);
 
@@ -340,6 +342,7 @@ public:
         sliderTriggerPos->setMaximum(10239);
         sliderTriggerPos->setValue(5120);
         sliderTriggerPos->setOrientation(Qt::Horizontal);
+        sliderTriggerPos->setAttribute(Qt::WA_LayoutUsesWidgetRect);
 
         vboxLayout3->addWidget(sliderTriggerPos);
 
@@ -430,6 +433,7 @@ public:
         sliderTrigger->setValue(400);
         sliderTrigger->setOrientation(Qt::Vertical);
         sliderTrigger->setTickPosition(QSlider::TicksAbove);
+        sliderTrigger->setAttribute(Qt::WA_LayoutUsesWidgetRect);
 
         hboxLayout3->addWidget(sliderTrigger);
 
@@ -494,6 +498,7 @@ public:
         sliderChM->setValue(400);
         sliderChM->setOrientation(Qt::Vertical);
         sliderChM->setTickPosition(QSlider::TicksAbove);
+        sliderChM->setAttribute(Qt::WA_LayoutUsesWidgetRect);
 
         hboxLayout3->addWidget(sliderChM);
 
