@@ -47,6 +47,31 @@ HantekDSOWidget::HantekDSOWidget(QWidget* parent, const char* name, Qt::WFlags f
           triggerSource(0), triggerSlope(SLOPE_POSITIVE),
           triggerPosition(0x78A60), calData(0)
 {
+//    this->setAutoFillBackground(true);
+//    this->setPaletteBackgroundColor(QColor(235,235,235));
+    this->setPaletteBackgroundColor(QColor(Qt::black));
+    sliderCh1->setAutoFillBackground(true);
+    sliderCh1->setPaletteBackgroundColor(QColor(Qt::black));
+    sliderCh2->setAutoFillBackground(true);
+    sliderCh2->setPaletteBackgroundColor(QColor(Qt::black));
+    sliderTriggerPos->setAutoFillBackground(true);
+    sliderTriggerPos->setPaletteBackgroundColor(QColor(Qt::black));
+    sliderTrigger->setAutoFillBackground(true);
+    sliderTrigger->setPaletteBackgroundColor(QColor(Qt::black));
+    sliderChM->setAutoFillBackground(true);
+    sliderChM->setPaletteBackgroundColor(QColor(Qt::black));
+
+    groupTiming->setAutoFillBackground(true);
+    groupTiming->setPaletteBackgroundColor(QColor(235,235,235));
+    groupChannel1->setAutoFillBackground(true);
+    groupChannel1->setPaletteBackgroundColor(QColor(255,197,197));
+    groupChannel2->setAutoFillBackground(true);
+    groupChannel2->setPaletteBackgroundColor(QColor(197,255,255));
+    groupChannelMath->setAutoFillBackground(true);
+    groupChannelMath->setPaletteBackgroundColor(QColor(197,255,197));
+    groupDisplay->setAutoFillBackground(true);
+    groupDisplay->setPaletteBackgroundColor(QColor(235,235,235));
+
     gLBox1->setAThread(&dsoAThread);
     cursorCh1->setChannel(CHANNEL_CH1);
     cursorCh2->setChannel(CHANNEL_CH2);

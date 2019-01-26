@@ -673,8 +673,8 @@ public:
         buttonStart->setObjectName(QString::fromUtf8("buttonStart"));
         sizePolicy2.setHeightForWidth(buttonStart->sizePolicy().hasHeightForWidth());
         buttonStart->setSizePolicy(sizePolicy2);
-        buttonStart->setMinimumSize(QSize(52, 39));
-        buttonStart->setMaximumSize(QSize(52, 40));
+        buttonStart->setMinimumSize(QSize(70, 39));
+        buttonStart->setMaximumSize(QSize(70, 40));
         buttonStart->setFont(font1);
 
         hboxLayout8->addWidget(buttonStart);
@@ -683,8 +683,8 @@ public:
         buttonStop->setObjectName(QString::fromUtf8("buttonStop"));
         sizePolicy2.setHeightForWidth(buttonStop->sizePolicy().hasHeightForWidth());
         buttonStop->setSizePolicy(sizePolicy2);
-        buttonStop->setMinimumSize(QSize(52, 40));
-        buttonStop->setMaximumSize(QSize(52, 40));
+        buttonStop->setMinimumSize(QSize(70, 40));
+        buttonStop->setMaximumSize(QSize(70, 40));
         buttonStop->setFont(font1);
 
         hboxLayout8->addWidget(buttonStop);

@@ -42,6 +42,9 @@ include_directories( ${QT_INCLUDE_DIR} )
 
 add_subdirectory(src)
 
+# add the install targets
+install (TARGETS HantekDSO DESTINATION bin)
+
 #for debugging
 message( STATUS "===" )
 message( STATUS "PROJECT_NAME: " ${PROJECT_NAME} )
