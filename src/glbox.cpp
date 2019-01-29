@@ -196,6 +196,15 @@ void GLBox::paintGL()
 
                     glPopMatrix();
 
+                    glDisable(GL_LINE_SMOOTH);
+                    glLineStipple (1, 0x3333);
+                    for (int i = 0; i < MAX_CURSOR; ++i)
+                    {
+                        if (cursors[i] != 0)
+                            cursors[i]->paintCursor(font);
+                    }
+                    glLineStipple (1, 0x00FF);
+                    glCallList(gl_grid);  // Draw grid
                 }
                 break;
 
@@ -300,7 +309,6 @@ void GLBox::paintGL()
                 glPopMatrix();
 */
                 glDisable(GL_LINE_SMOOTH);
-		
 		glLineStipple (1, 0x3333);
 		for (int i = 0; i < MAX_CURSOR; ++i)
 		{
