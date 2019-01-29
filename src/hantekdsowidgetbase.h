@@ -1180,6 +1180,7 @@ public:
          << QApplication::translate("HantekDSOWidgetBase", "X-T", 0, QApplication::UnicodeUTF8)
          << QApplication::translate("HantekDSOWidgetBase", "X-Y", 0, QApplication::UnicodeUTF8)
          << QApplication::translate("HantekDSOWidgetBase", "FHT", 0, QApplication::UnicodeUTF8)
+         << QApplication::translate("HantekDSOWidgetBase", "DEMO", 0, QApplication::UnicodeUTF8)
         );
         comboDisplayInterpolation->clear();
         comboDisplayInterpolation->insertItems(0, QStringList()

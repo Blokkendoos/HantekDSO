@@ -143,14 +143,13 @@ int HantekDSOWidget::startDSO()
         sliderTrigger_valueChanged(sliderTrigger->value());
         setActiveChannel();
         dsoAThread.start();
-
-        refreshTimer.start(25, FALSE);
     }
     else
     {
-        textInfo->setText("DSO NOT found");
+        comboViewMode_activated(VIEWMODE_DEMO);
+        textInfo->setText("DSO NOT found - switched to DEMO mode");
     }
-
+    refreshTimer.start(25, FALSE);
     return 0;
 }
 

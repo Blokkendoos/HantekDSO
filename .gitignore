@@ -14,3 +14,7 @@ src/portinglog.txt
 
 # NetBeans
 nbproject/
+
+# MacOS
+.DS_Store
+ 

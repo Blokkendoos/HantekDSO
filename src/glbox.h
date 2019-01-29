@@ -55,7 +55,8 @@ enum view_modes
 {
     VIEWMODE_XT = 0,
     VIEWMODE_XY,
-    VIEWMODE_SPECTRUM
+    VIEWMODE_SPECTRUM,
+    VIEWMODE_DEMO
 };
 
 enum math_types
@@ -103,6 +104,7 @@ public:
     static GLfloat getBorder();
 
 protected:
+    void initializeGLBox();
     void initializeGL();
     void paintGL();
     void resizeGL(int w, int h);
@@ -127,6 +129,9 @@ private:
     double timeDiv;
     double timeShift;
     Cursor *cursorToMove;
+    double demo_d1;
+    double demo_d2;
+
 };
 
 

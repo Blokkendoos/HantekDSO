@@ -32,30 +32,14 @@ const GLfloat GLBox::chColor[MAX_CHANNELS+1][4] = {
 
 const GLfloat GLBox::border = 0.1;
 
-GLBox::GLBox(QWidget* parent, const char* name) : QGLWidget(parent, name),
-    aThread(0), gl_grid(0), digitalPhosphor(0), dpIndex(0), viewMode(VIEWMODE_XT),
-    mathType(MATHTYPE_OFF), chMOffset(0), interpolationMode(INTERPOLATION_LINEAR),
-    timeDiv(1), timeShift(0), cursorToMove(0)
+GLBox::GLBox(QWidget* parent, const char* name) : QGLWidget(parent, name)
 {
-    setMouseTracking(false);
-    
-    for (int i = 0; i < MAX_CURSOR; ++i)
-    {
-	cursors[i] = 0;
-    }
+    initializeGLBox();
 }
 
-GLBox::GLBox(QWidget* parent) : QGLWidget(parent),
-    aThread(0), gl_grid(0), digitalPhosphor(0), dpIndex(0), viewMode(VIEWMODE_XT),
-    mathType(MATHTYPE_OFF), chMOffset(0), interpolationMode(INTERPOLATION_LINEAR),
-    timeDiv(1), timeShift(0), cursorToMove(0)
+GLBox::GLBox(QWidget* parent) : QGLWidget(parent)
 {
-    setMouseTracking(false);
-
-    for (int i = 0; i < MAX_CURSOR; ++i)
-    {
-	cursors[i] = 0;
-    }
+    initializeGLBox();
 }
 
 GLBox::~GLBox()
@@ -70,6 +54,30 @@ GLBox::~GLBox()
     if (gl_grid)
     {
         glDeleteLists(gl_grid, GLOBJ_LAST);
+    }
+}
+
+void GLBox::initializeGLBox()
+{
+    aThread = 0;
+    gl_grid = 0;
+    digitalPhosphor = 0;
+    dpIndex = 0;
+    viewMode = VIEWMODE_XT;
+    mathType = MATHTYPE_OFF;
+    chMOffset = 0;
+    interpolationMode = INTERPOLATION_LINEAR;
+    timeDiv = 1;
+    timeShift = 0;
+    cursorToMove = 0;
+    demo_d1 = 0;
+    demo_d2 = 0.0000005;
+
+    setMouseTracking(false);
+
+    for (int i = 0; i < MAX_CURSOR; ++i)
+    {
+	cursors[i] = 0;
     }
 }
 
@@ -117,6 +125,80 @@ void GLBox::paintGL()
 
         switch(viewMode)
         {
+            case VIEWMODE_DEMO:
+                {
+                    // demo signal code taken from: https://sourceforge.net/p/oscope2100
+                    double ch1Val = 0;
+                    double ch2Val = 0;
+                    demo_d1 += demo_d2;
+                    if (demo_d1 < 0) {
+                        demo_d1 = 0;
+                        demo_d2 = -demo_d2;
+                    }
+                    if (demo_d1 > 0.0008) {
+                        demo_d1 = 0.0008;
+                        demo_d2 = -demo_d2;
+                    }
+                    double d1 = 0.001 + demo_d1;
+                    double d2 = 0.0014 - demo_d1;
+
+                    // channel 1
+                    glNewList(gl_channels + dpIndex*MAX_CHANNELS, GL_COMPILE);
+                    glBegin((interpolationMode == INTERPOLATION_OFF)?GL_POINTS:GL_LINE_STRIP);
+                    for (unsigned i = 0; i < viewLen; i++)
+                    {
+                        glVertex2f(i, 128 + 127*sin(ch1Val));
+                        ch1Val += d1;
+                    }
+                    glEnd();
+                    glEndList();
+
+                    // channel 2
+                    glNewList(gl_channels + dpIndex*MAX_CHANNELS + 1, GL_COMPILE);
+                    glBegin((interpolationMode == INTERPOLATION_OFF)?GL_POINTS:GL_LINE_STRIP);
+                    for (unsigned i = 0; i < viewLen; i++)
+                    {
+                        glVertex2f(i, 128 + 127*cos(ch2Val));
+                        ch2Val += d2;
+                    }
+                    glEnd();
+                    glEndList();
+
+                    // display
+                    glPushMatrix();
+                    glTranslatef(-DIVS_TIME/2, -DIVS_VOLTAGE/2, 0);
+                    glScalef(DIVS_TIME*timeDiv/samplesInScale, DIVS_VOLTAGE/VOLTAGE_SCALE, 1.0);
+
+                    glEnable(GL_LINE_SMOOTH);
+                    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
+                    // TODO digital phosphor has no memory (of previous data)
+                    for (int t = 0 ; t < MAX_CHANNELS; t++)
+                    {
+                        if (chActive[t])
+                        {
+                            for (int i = (digitalPhosphor?DP_DEPTH:0); i >= 0; i--)
+                            {
+                                glColor4f(chColor[t][0], chColor[t][1], chColor[t][2],
+                                    chColor[t][3] - 0.7*log(i + 1));
+                                int index = (dpIndex + i) % DP_DEPTH;
+                                glCallList(gl_channels + index*MAX_CHANNELS + t);
+                            }
+                       }
+                    }
+                    if (digitalPhosphor)
+                    {
+                        if (++dpIndex >= DP_DEPTH)
+                        {
+                            dpIndex = 0;
+                        }
+                    }
+
+                    glPopMatrix();
+
+                }
+                break;
+
             case VIEWMODE_XT:
                 aThread->bufferMutex.lock();
                 for (int t = 0 ; t < MAX_CHANNELS; t++)
