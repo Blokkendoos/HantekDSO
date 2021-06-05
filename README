@@ -25,6 +25,7 @@ Both libraries (libbfd and libiberty) included in binutils-devel package.
 Also you need to have fxload utility installed in order to be able to upload firmware
 in to the oscilloscope.
 
+![Screenshot](Schermafbeelding%202021-06-05%20om%2023.43.31.png?raw=true "Screenshot")
 
 How to BUILD:
 mkdir build
